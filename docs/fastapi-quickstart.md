@@ -25,15 +25,62 @@ docker --version
 docker compose version
 ```
 
+macOS 터미널에서는 다음 명령으로 확인한다.
+
+```bash
+python3 --version
+docker --version
+docker compose version
+```
+
 Docker Desktop을 Chocolatey로 설치한 직후 `docker` 명령을 찾지 못하면 새 PowerShell 터미널을 연 뒤 다시 확인한다.
+
+macOS에서 `docker` 명령을 찾지 못하면 Docker Desktop을 실행한 뒤 새 터미널을 열고 다시 확인한다.
 
 ## Python 환경 설정
 
-프로젝트 루트에서 다음 명령을 실행한다.
+Windows PowerShell에서는 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리할 수 있다.
+
+```powershell
+.\scripts\dev.ps1
+```
+
+실행 정책 때문에 스크립트가 막히면 다음 명령을 사용한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\dev.ps1
+```
+
+macOS에서는 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리할 수 있다.
+
+```bash
+chmod +x scripts/dev.sh
+./scripts/dev.sh
+```
+
+스크립트는 다음 작업을 순서대로 실행한다.
+
+- `.env.local`이 없으면 기본 로컬 값으로 생성한다.
+- `.venv`가 없으면 Python 가상 환경을 생성한다.
+- `requirements.txt` 의존성을 설치한다.
+- Docker Compose로 PostgreSQL과 Redis를 실행한다.
+- `fastapi dev app/main.py`로 API 서버를 실행한다.
+- `Ctrl+C`를 누르면 FastAPI 개발 서버 프로세스를 종료한다.
+
+Windows PowerShell에서는 프로젝트 루트에서 다음 명령을 실행한다.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+macOS 터미널에서는 프로젝트 루트에서 다음 명령을 실행한다.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -70,8 +117,16 @@ PostgreSQL과 Redis 연결 확인은 `/health/ready`에서 처리한다.
 
 로컬 환경 파일을 만든다.
 
+Windows PowerShell:
+
 ```powershell
 New-Item -ItemType File .env.local
+```
+
+macOS:
+
+```bash
+touch .env.local
 ```
 
 `.env.local`에 다음 값을 입력한다.
@@ -121,10 +176,17 @@ docker compose --env-file .env.local logs -f postgres redis
 
 ## API 서버 실행
 
-프로젝트 루트에서 가상 환경을 활성화한 뒤 서버를 실행한다.
+Windows PowerShell에서는 프로젝트 루트에서 가상 환경을 활성화한 뒤 서버를 실행한다.
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
+fastapi dev app/main.py
+```
+
+macOS 터미널에서는 다음 명령을 실행한다.
+
+```bash
+source .venv/bin/activate
 fastapi dev app/main.py
 ```
 
@@ -177,11 +239,21 @@ Ctrl+C
 
 코드를 바꾼 뒤 `/docs`나 응답이 바뀌지 않으면 서버를 종료하고 다시 실행한다.
 
+Windows PowerShell:
+
 ```powershell
 fastapi dev app/main.py
 ```
 
+macOS:
+
+```bash
+fastapi dev app/main.py
+```
+
 그래도 8000번 포트가 이전 서버를 보고 있으면 남은 프로세스를 확인한다.
+
+Windows PowerShell:
 
 ```powershell
 netstat -ano | Select-String ':8000'
@@ -191,6 +263,18 @@ netstat -ano | Select-String ':8000'
 
 ```powershell
 taskkill /PID <PID> /F
+```
+
+macOS:
+
+```bash
+lsof -nP -iTCP:8000 -sTCP:LISTEN
+```
+
+`PID`를 확인한 뒤 종료한다.
+
+```bash
+kill -9 <PID>
 ```
 
 종료 후 서버를 다시 실행한다.
@@ -203,13 +287,13 @@ fastapi dev app/main.py
 
 컨테이너를 종료한다.
 
-```powershell
+```bash
 docker compose --env-file .env.local down
 ```
 
 저장된 데이터까지 삭제할 때만 다음 명령을 사용한다.
 
-```powershell
+```bash
 docker compose --env-file .env.local down -v
 ```
 
@@ -224,6 +308,10 @@ docker compose --env-file .env.local down -v
 
 ## 이력관리
 
+- 2026-05-22: Windows PowerShell용 개발 실행 스크립트 안내 추가
+- 2026-05-22: 개발 실행 스크립트의 `Ctrl+C` 종료 처리 설명 추가
+- 2026-05-22: macOS용 개발 실행 스크립트 안내 추가
+- 2026-05-22: macOS 기준 설치 확인, 가상 환경, 환경 파일 생성, 서버 실행, 포트 정리 절차 추가
 - 2026-04-27: API 서버 재시작과 포트 점유 프로세스 정리 절차 추가
 - 2026-04-27: `requirements.txt` 설치와 `/health/ready` 확인 절차 추가
 - 2026-04-27: Docker 접속 정보를 `.env.local` 기준으로 변경
