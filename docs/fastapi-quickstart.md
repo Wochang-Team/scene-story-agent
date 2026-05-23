@@ -39,33 +39,51 @@ macOS에서 `docker` 명령을 찾지 못하면 Docker Desktop을 실행한 뒤 
 
 ## Python 환경 설정
 
-Windows PowerShell에서는 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리할 수 있다.
+Windows PowerShell에서는 `local` 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리할 수 있다.
 
 ```powershell
-.\scripts\dev.ps1
+.\scripts\local.ps1
 ```
 
 실행 정책 때문에 스크립트가 막히면 다음 명령을 사용한다.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\dev.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\local.ps1
 ```
 
-macOS에서는 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리할 수 있다.
+macOS에서는 `local` 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리할 수 있다.
 
 ```bash
-chmod +x scripts/dev.sh
-./scripts/dev.sh
+chmod +x scripts/local.sh
+./scripts/local.sh
 ```
 
-스크립트는 다음 작업을 순서대로 실행한다.
+`local` 스크립트는 다음 작업을 순서대로 실행한다.
 
 - `.env.local`이 없으면 기본 로컬 값으로 생성한다.
 - `.venv`가 없으면 Python 가상 환경을 생성한다.
 - `requirements.txt` 의존성을 설치한다.
-- Docker Compose로 PostgreSQL과 Redis를 실행한다.
+- Docker Compose로 PostgreSQL 18.4 + pgvector와 Redis 8.6을 실행한다.
+- PostgreSQL에 `vector` 확장이 없으면 생성한다.
 - `fastapi dev app/main.py`로 API 서버를 실행한다.
 - `Ctrl+C`를 누르면 FastAPI 개발 서버 프로세스를 종료한다.
+
+서버 환경에서는 환경별 스크립트를 사용한다.
+
+```bash
+./scripts/dev.sh
+./scripts/prd.sh
+```
+
+```powershell
+.\scripts\dev.ps1
+.\scripts\prd.ps1
+```
+
+- `dev` 스크립트는 `.env.dev`를 읽는다.
+- `prd` 스크립트는 `.env.prd`를 읽는다.
+- `.env.dev`, `.env.prd`는 Git에 포함하지만 값은 비워둔다.
+- 서버에서는 `.env.local`을 참고해 필요한 값을 채운다.
 
 Windows PowerShell에서는 프로젝트 루트에서 다음 명령을 실행한다.
 
@@ -145,7 +163,7 @@ REDIS_PORT=6379
 프로젝트 루트에서 다음 명령을 실행한다.
 
 ```powershell
-docker compose --env-file .env.local up -d postgres redis
+docker compose --env-file .env.local up --build -d postgres redis
 ```
 
 실행 상태를 확인한다.
@@ -308,6 +326,8 @@ docker compose --env-file .env.local down -v
 
 ## 이력관리
 
+- 2026-05-23: 환경별 실행 스크립트와 `.env.dev`, `.env.prd` 사용 기준 추가
+- 2026-05-23: 로컬 의존 서비스 실행 기준을 PostgreSQL 18.4 + pgvector, Redis 8.6으로 갱신
 - 2026-05-22: Windows PowerShell용 개발 실행 스크립트 안내 추가
 - 2026-05-22: 개발 실행 스크립트의 `Ctrl+C` 종료 처리 설명 추가
 - 2026-05-22: macOS용 개발 실행 스크립트 안내 추가

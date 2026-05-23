@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-ENV_FILE=".env.dev"
+ENV_FILE=".env.prd"
 export ENV_FILE
 REQUIRED_ENV_KEYS=(
   POSTGRES_DB
@@ -48,7 +48,7 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-echo "dev 환경으로 API 서버를 실행합니다: http://0.0.0.0:8000"
+echo "prd 환경으로 API 서버를 실행합니다: http://0.0.0.0:8000"
 echo "종료하려면 Ctrl+C를 누르세요."
 
 fastapi run app/main.py --host 0.0.0.0 --port 8000

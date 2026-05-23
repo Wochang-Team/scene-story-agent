@@ -1,6 +1,9 @@
 services:
   postgres:
-    image: postgres:17-alpine
+    build:
+      context: .
+      dockerfile: infra/postgres/Dockerfile
+    image: scene-story-agent-postgres:18.4-pgvector
     container_name: scene-story-agent-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -9,7 +12,8 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres18_data:/var/lib/postgresql/18/docker
+      - ./infra/postgres/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -17,12 +21,12 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:8.6-alpine
     container_name: scene-story-agent-redis
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
-      - redis_data:/data
+      - redis8_data:/data
     command: ["redis-server", "--appendonly", "yes"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -31,5 +35,5 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres18_data:
+  redis8_data:

@@ -8,6 +8,7 @@
 
 - [프로덕트 스펙](../docs/product-spec.md): 원본 기록, AI 해석 정보, 벡터 연결, 타임라인, MVP 범위
 - [기술 스펙](../docs/technical-spec.md): FastAPI, PostgreSQL, pgvector, AI Provider, 비동기 처리, 삭제 연계
+- [DB 설계](../docs/database-design.md): 원본 기록, 파일, AI 해석, 임베딩, 연결 후보, 작업 상태 테이블 설계
 - [개발 인프라](../docs/development-infra.md): Cloud Run, Supabase, Cloudflare R2, Upstash Redis, OpenAI/Gemini 운영 후보
 - [개인정보 보호 조치](../docs/privacy-compliance.md): 개인정보 분류, 동의, AI 처리, 위치성 정보, 삭제, 출시 전 점검
 - [FastAPI 빠른 시작](../docs/fastapi-quickstart.md): Windows PowerShell 기준 로컬 실행 절차
@@ -30,6 +31,11 @@
 - 운영:
   - 개발 데이터와 운영 데이터는 공유하지 않는다.
   - AI Provider, 스토리지, DB, Redis는 교체 가능한 경계로 둔다.
+- 환경 파일:
+  - `local`은 `.env.local`을 읽는다.
+  - `dev`는 `.env.dev`를 읽는다.
+  - `prd`는 `.env.prd`를 읽는다.
+  - `.env.dev`, `.env.prd`는 Git에 포함하지만 값은 서버에서 채운다.
 
 ## 공식 검증 결과
 
@@ -46,6 +52,9 @@
 - Supabase와 pgvector:
   - Supabase는 Postgres와 pgvector 기반 AI/Vectors 툴킷을 제공한다.
   - Supabase client는 PostgREST를 거치므로 pgvector 유사도 연산은 Postgres 함수로 감싼 뒤 `rpc()`로 호출하는 방식이 공식 예시에 나온다.
+- PostgreSQL:
+  - PostgreSQL 18은 `uuidv7()`를 제공하므로 신규 PK 생성 기준은 UUID v7로 둔다.
+  - 로컬 DB는 PostgreSQL 18.4 + pgvector 포함 이미지로 실행한다.
 - Google Cloud:
   - Cloud Tasks는 Cloud Run 서비스로 비동기 작업을 밀어 넣는 용도에 맞다.
   - Cloud Tasks timeout을 넘는 작업은 Cloud Run Jobs 검토가 필요하다.
@@ -77,6 +86,10 @@
 - OpenAI GPT-5.4 model docs, 확인일 2026-05-22: https://developers.openai.com/api/docs/models/gpt-5.4/
 - OpenAI Images and vision, 확인일 2026-05-22: https://developers.openai.com/api/docs/guides/images-vision
 - OpenAI Business data privacy, 확인일 2026-05-22: https://openai.com/business-data/
+- PostgreSQL 18.4 release notes, 확인일 2026-05-23: https://www.postgresql.org/docs/release/
+- PostgreSQL 18 UUID functions, 확인일 2026-05-23: https://www.postgresql.org/docs/18/functions-uuid.html
+- PostgreSQL Docker official image, 확인일 2026-05-23: https://hub.docker.com/_/postgres
+- Redis Docker official image, 확인일 2026-05-23: https://hub.docker.com/_/redis
 - Gemini Developer API Pricing, 확인일 2026-05-22: https://ai.google.dev/gemini-api/docs/pricing
 - Gemini API Billing, 확인일 2026-05-22: https://ai.google.dev/gemini-api/docs/billing
 - Gemini API Rate limits, 확인일 2026-05-22: https://ai.google.dev/gemini-api/docs/rate-limits
@@ -91,4 +104,7 @@
 
 ## 이력관리
 
+- 2026-05-23: 환경별 ENV 파일과 실행 스크립트 기준 반영
+- 2026-05-23: PostgreSQL 18, UUID v7, 로컬 pgvector 이미지 기준 반영
+- 2026-05-22: DB 설계 문서 링크 추가
 - 2026-05-22: `docs/` 문서 기반 위키 색인과 공식 검증 결과 작성

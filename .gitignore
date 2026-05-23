@@ -19,6 +19,8 @@ htmlcov/
 .env
 .env.*
 !.env.local
+!.env.dev
+!.env.prd
 
 # Logs and temporary files
 *.log

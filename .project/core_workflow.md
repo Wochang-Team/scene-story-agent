@@ -26,8 +26,8 @@
 - 웹 프레임워크: `fastapi[standard]==0.136.1`
 - PostgreSQL client: `psycopg[binary]==3.2.13`
 - Redis client: `redis==7.1.0`
-- 로컬 PostgreSQL: `postgres:17-alpine`
-- 로컬 Redis: `redis:7-alpine`
+- 로컬 PostgreSQL: `scene-story-agent-postgres:18.4-pgvector`
+- 로컬 Redis: `redis:8.6-alpine`
 
 ## 환경 생성/설치
 로컬 Python 가상 환경을 만든 뒤 의존성을 설치한다.
@@ -38,11 +38,25 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## 환경별 실행 스크립트
+환경별 스크립트가 ENV 파일을 지정한다.
+
+```bash
+./scripts/local.sh
+./scripts/dev.sh
+./scripts/prd.sh
+```
+
+- `local`: `.env.local`을 읽고 Docker Compose 의존 서비스를 함께 실행한다.
+- `dev`: `.env.dev`를 읽고 API 서버를 실행한다.
+- `prd`: `.env.prd`를 읽고 API 서버를 실행한다.
+- `.env.dev`, `.env.prd`는 Git에 포함하지만 값은 비워둔다.
+
 ## 로컬 의존 서비스
 PostgreSQL과 Redis는 Docker Compose로 실행한다.
 
 ```bash
-docker compose --env-file .env.local up -d
+docker compose --env-file .env.local up --build -d
 docker compose --env-file .env.local ps
 ```
 
@@ -106,7 +120,17 @@ curl http://127.0.0.1:8000/health/ready
   - CI 실행 여부
 
 ## 환경 변수
-환경 변수는 `.env.local`과 `app/settings.py`를 기준으로 관리한다.
+환경 변수는 `ENV_FILE`과 `app/settings.py`를 기준으로 관리한다.
+
+- 기본값:
+  - `ENV_FILE=.env.local`
+- Git 포함:
+  - `.env.local`
+  - `.env.dev`
+  - `.env.prd`
+- 값 관리:
+  - `.env.local`은 로컬 기본값을 둔다.
+  - `.env.dev`, `.env.prd`는 키만 두고 값은 서버에서 채운다.
 
 | 이름 | 용도 | 필수 여부 | 근거 |
 |---|---|---|---|
@@ -133,7 +157,7 @@ curl http://127.0.0.1:8000/health/ready
 - 산출물: 확인 필요
 - 배포 대상: 확인 필요
 - 현재 없는 파일:
-  - Dockerfile
+  - API 서버 Dockerfile
   - GitHub Actions workflow
   - 배포 설정 파일
   - DB 마이그레이션 설정
@@ -175,9 +199,11 @@ curl http://127.0.0.1:8000/health/ready
 - 개발 의존성 관리 방식
 - 테스트 실행 명령
 - lint, format, typecheck 표준 도구
-- Dockerfile과 운영 배포 절차
+- API 서버 Dockerfile과 운영 배포 절차
 - CI/CD workflow
 - DB 마이그레이션 명령
 
 ## 이력관리
+- 2026-05-23: `local`, `dev`, `prd` 실행 스크립트와 ENV 파일 기준 추가
+- 2026-05-23: 로컬 PostgreSQL 18.4 + pgvector, Redis 8.6 기준으로 갱신
 - 2026-05-21: Python/FastAPI 기준 개발 워크플로우 문서 생성

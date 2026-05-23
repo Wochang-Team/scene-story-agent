@@ -1,9 +1,12 @@
 from functools import lru_cache
+import os
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv(".env.local")
+ENV_FILE = os.getenv("ENV_FILE", ".env.local")
+
+load_dotenv(ENV_FILE)
 
 
 class Settings(BaseSettings):
@@ -15,7 +18,7 @@ class Settings(BaseSettings):
     redis_host: str = "127.0.0.1"
     redis_port: int = 6379
 
-    model_config = SettingsConfigDict(env_file=".env.local", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     @property
     def postgres_dsn(self) -> str:

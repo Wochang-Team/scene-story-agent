@@ -99,7 +99,7 @@ flowchart TD
 - build backend: 확인 필요
 
 ## 코드베이스 구조
-현재 실제 구조는 최대 2뎁스다.
+현재 실제 구조는 로컬 런타임, 인프라, 문서 기준 파일로 구성된다.
 
 ```text
 .
@@ -108,6 +108,10 @@ flowchart TD
 ├── requirements.txt           # Python 런타임 의존성
 ├── docker-compose.yml         # 로컬 PostgreSQL, Redis 구성
 ├── .env.local                 # 로컬 환경 변수 파일
+├── .env.dev                   # 개발 서버 환경 변수 키
+├── .env.prd                   # 운영 서버 환경 변수 키
+├── infra/                     # 로컬 인프라 이미지와 초기화 SQL
+│   └── postgres/              # PostgreSQL 18.4 + pgvector 로컬 이미지
 ├── .project/                  # 프로젝트 기준 문서
 │   ├── core_project.md        # 구조와 아키텍처 기준
 │   ├── core_code_style.md     # 구현 스타일 기준
@@ -116,16 +120,26 @@ flowchart TD
 │   ├── __init__.py            # Python 패키지 선언
 │   ├── main.py                # API 앱과 헬스체크 라우트
 │   └── settings.py            # 환경 변수 설정 객체
+├── scripts/                   # 로컬 개발 실행 스크립트
+│   ├── local.sh               # macOS/Linux local 실행
+│   ├── dev.sh                 # macOS/Linux dev 실행
+│   ├── prd.sh                 # macOS/Linux prd 실행
+│   ├── local.ps1              # Windows PowerShell local 실행
+│   ├── dev.ps1                # Windows PowerShell dev 실행
+│   └── prd.ps1                # Windows PowerShell prd 실행
 └── docs/                      # 제품, 기술, 인프라, 개인정보 문서
     ├── product-spec.md        # 제품 정의와 MVP 범위
     ├── technical-spec.md      # 기술 선택과 처리 흐름
+    ├── database-design.md     # PostgreSQL 테이블과 삭제 연계 설계
     ├── development-infra.md   # 인프라 구성과 운영 기준
     ├── privacy-compliance.md  # 개인정보 처리 기준
     └── fastapi-quickstart.md  # FastAPI 로컬 시작 절차
 ```
 
-- 최대 2뎁스 사유:
+- 구조 판단:
   - 현재 런타임 코드는 `app` 바로 아래 파일 3개로만 구성된다.
+  - 로컬 인프라는 `infra/postgres`와 `docker-compose.yml`에서 관리한다.
+  - 반복 실행 명령은 `scripts`에서 관리한다.
   - `tests`, `app/routers`, `app/services`, `app/models`는 아직 없다.
 
 ## 예정 패키지 구조
@@ -149,7 +163,7 @@ flowchart TD
 |---|---|---|---|---|
 | API 앱 | `app` | `app.main.app` | 없음 | FastAPI 앱 객체를 만든다. |
 | 기본 라우트 | `app` | `root`, `health`, `readiness` | 없음 | 기본 응답과 헬스체크를 제공한다. |
-| 설정 | `app` | `Settings`, `get_settings` | `app.settings.Settings` | `.env.local` 기반 설정을 제공한다. |
+| 설정 | `app` | `Settings`, `get_settings` | `app.settings.Settings` | `ENV_FILE` 기반 설정을 제공한다. |
 | DB 확인 | `app` | `readiness` | 없음 | `psycopg`로 PostgreSQL 연결을 확인한다. |
 | Redis 확인 | `app` | `readiness` | 없음 | `redis.Redis.ping()`으로 Redis 연결을 확인한다. |
 
@@ -219,4 +233,6 @@ API 진입점은 하나다.
 - AI Provider, Object Storage, pgvector 구현 위치
 
 ## 이력관리
+- 2026-05-23: 환경별 ENV 파일과 실행 스크립트 구조 반영
+- 2026-05-23: 로컬 인프라와 스크립트 구조, DB 설계 문서 반영
 - 2026-05-21: Python/FastAPI 기준 프로젝트 문서 생성

@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $PSScriptRoot
 Set-Location $RootDir
 
-$env:ENV_FILE = ".env.dev"
+$env:ENV_FILE = ".env.prd"
 $RequiredEnvKeys = @(
     "POSTGRES_DB",
     "POSTGRES_USER",
@@ -56,7 +56,7 @@ if (-not (Test-Path ".venv")) {
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-Write-Host "dev 환경으로 API 서버를 실행합니다: http://0.0.0.0:8000"
+Write-Host "prd 환경으로 API 서버를 실행합니다: http://0.0.0.0:8000"
 Write-Host "종료하려면 Ctrl+C를 누르세요."
 
 fastapi run app/main.py --host 0.0.0.0 --port 8000

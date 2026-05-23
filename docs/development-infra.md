@@ -150,7 +150,7 @@ Client
 
 | 환경 | 목적 | 구성 |
 |---|---|---|
-| local | 개발자 로컬 개발 | Docker Compose, PostgreSQL, Redis, 로컬 파일 저장 |
+| local | 개발자 로컬 개발 | Docker Compose, PostgreSQL 18.4 + pgvector, Redis 8.6, 로컬 파일 저장 |
 | dev | 통합 개발 검증 | Cloud Run dev, Supabase dev, R2 dev bucket, Upstash dev |
 | prod | 실제 사용자 운영 | Cloud Run prod, Supabase prod, R2 prod bucket, Upstash prod |
 
@@ -378,4 +378,5 @@ MVP에서는 다음 선택을 피한다.
 
 ## 19. 이력관리
 
+- 2026-05-23: 로컬 인프라 기준을 PostgreSQL 18.4 + pgvector, Redis 8.6으로 갱신
 - 2026-04-24: 개발 인프라 초안 작성
