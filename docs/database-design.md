@@ -23,10 +23,9 @@
   - 벡터 검색은 PostgreSQL의 pgvector를 우선 사용한다.
   - 원본 파일은 DB에 저장하지 않고 Object Storage에 저장한다.
   - DB에는 원본 파일 접근에 필요한 식별자와 메타데이터만 저장한다.
-- 로컬 환경 주의:
-  - `docker-compose.yml`은 `postgres:18.4-alpine` 기반 로컬 이미지를 빌드한다.
-  - 로컬 이미지는 `postgresql-pgvector` 패키지를 설치한다.
-  - 초기 DB 생성 시 `infra/postgres/initdb/001_extensions.sql`에서 `vector` 확장을 활성화한다.
+- 참조:
+  - 로컬 실행과 Docker Compose 기준은 `.project/core_workflow.md`를 따른다.
+  - PostgreSQL 이미지와 초기화 SQL 위치는 `.project/core_project.md`를 따른다.
 
 ## 2. 설계 원칙
 
@@ -330,8 +329,9 @@ AI 분석과 임베딩 생성 작업 상태를 저장한다.
   - `retrying`
   - `canceled`
 - 기준:
-  - Redis는 큐와 임시 상태에 사용한다.
-  - PostgreSQL에는 최종 추적 가능한 작업 상태를 남긴다.
+  - PostgreSQL은 최종 추적 가능한 작업 상태를 저장한다.
+  - Redis는 짧은 TTL 상태, 중복 실행 방지, 임시 캐시에 사용한다.
+  - 작업 재시도와 실패 원인은 `processing_jobs`를 기준으로 판단한다.
 
 ## 5. 삭제 연계
 
@@ -395,24 +395,9 @@ AI 분석과 임베딩 생성 작업 상태를 저장한다.
 
 이 SQL은 PostgreSQL 18 이상 기준 설계 확인용 초안이다.
 
-### 개발 DB 초기화
+### 권한 기준
 
-로컬 개발환경에서는 `.env.local`과 Docker Compose 기준으로 데이터베이스와 사용자를 만든다.
-
-#### 기본 관리자 계정
-
-개발 DB 초기화는 PostgreSQL 관리자 계정으로 실행한다.
-
-- local:
-  - 관리자 계정: `.env.local`의 `POSTGRES_USER`
-  - 관리자 비밀번호: `.env.local`의 `POSTGRES_PASSWORD`
-  - 기본 관리자 DB: `postgres`
-- dev/prd:
-  - 관리자 계정은 서버 또는 관리형 DB에서 별도로 발급받은 계정을 사용한다.
-  - `.env.dev`, `.env.prd`에는 앱 서버 접속 계정을 넣는다.
-  - 관리자 계정 값은 서버 운영자가 별도로 관리한다.
-
-이 문서의 `scene_story_agent_app`은 dev/prd에서 API 서버가 사용할 앱 계정이다.
+운영 환경은 DB owner 계정과 API 서버 앱 계정을 분리한다.
 
 - 관리자 계정:
   - DB와 role을 생성한다.
@@ -421,29 +406,14 @@ AI 분석과 임베딩 생성 작업 상태를 저장한다.
 - 앱 계정:
   - API 서버가 접속한다.
   - 필요한 schema, table, sequence 권한만 가진다.
+- 로컬 실행:
+  - `.project/core_workflow.md`의 환경 변수와 Docker Compose 기준을 따른다.
+  - 로컬에서는 별도 앱 계정 분리를 필수로 두지 않는다.
+- dev/prd 실행:
+  - 서버 또는 관리형 DB의 관리자 계정을 사용한다.
+  - 실제 비밀번호는 Secret Manager 또는 동등한 도구에서 주입한다.
 
-#### local
-
-로컬 DB와 사용자는 `.env.local` 값으로 생성한다.
-
-- 기준:
-  - DB 이름: `.env.local`의 `POSTGRES_DB`
-  - DB 사용자: `.env.local`의 `POSTGRES_USER`
-  - DB 비밀번호: `.env.local`의 `POSTGRES_PASSWORD`
-  - 로컬에서는 `POSTGRES_USER`가 DB owner다.
-  - 로컬에서는 `scene_story_agent_app` role을 만들지 않는다.
-
-프로젝트 루트에서 실행한다.
-
-```bash
-docker compose --env-file .env.local up --build -d postgres
-docker compose --env-file .env.local exec -T postgres \
-  sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "create extension if not exists vector;"'
-```
-
-#### dev/prd
-
-서버 또는 관리형 DB의 관리자 DB에 접속해 실행한다.
+관리자 DB에서 실행한다.
 
 ```sql
 drop database if exists scene_story_agent with (force);
@@ -459,7 +429,7 @@ encoding 'UTF8'
 template template0;
 ```
 
-생성한 애플리케이션 DB에 접속해 실행한다.
+애플리케이션 DB에서 실행한다.
 
 ```sql
 create extension if not exists vector;
@@ -488,11 +458,6 @@ grant usage, select, update
 on sequences
 to scene_story_agent_app;
 ```
-
-- 기준:
-  - 로컬 개발 비밀번호는 현재 `.env.local` 기준값을 사용한다.
-  - 운영 비밀번호는 배포 전 반드시 Secret Manager 또는 동등한 도구에서 주입한다.
-  - 운영에서는 DB owner 계정과 API 서버 앱 계정을 분리한다.
 
 ### 테이블 생성
 
@@ -663,17 +628,15 @@ create table processing_jobs (
 ## 9. 출처
 
 - `docs/product-spec.md`
-- `docs/technical-spec.md`
 - `docs/development-infra.md`
 - `docs/privacy-compliance.md`
 - `.wiki/index.md`
 - `docker-compose.yml`
-- `infra/postgres/Dockerfile`
+- `.project/core_workflow.md`
+- `.project/core_project.md`
 
 ## 이력관리
 
-- 2026-05-24: 로컬 DB 초기화 절차와 dev/prd 권한 SQL 구분
-- 2026-05-23: 기본 관리자 계정과 앱 계정 구분 추가
-- 2026-05-23: 개발 DB 생성, 권한 부여, pgvector 확장 SQL 추가
-- 2026-05-23: PostgreSQL 18, pgvector 로컬 이미지, UUID v7 기준 반영
+- 2026-05-24: 인프라 실행 절차를 정본 문서 참조로 대체하고 출처 정리
+- 2026-05-23: PostgreSQL 18, pgvector, UUID v7, 관리자·앱 계정 기준 반영
 - 2026-05-22: MVP DB 설계 초안 작성

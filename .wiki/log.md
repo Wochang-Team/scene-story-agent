@@ -4,6 +4,10 @@
 
 ## 작업 이력
 
+- 2026-05-24: `docs/` 문서 체계 정리
+  - 삭제: `docs/technical-spec.md`
+  - 기준: 제품, DB, 인프라, 개인정보, 로컬 실행 문서만 유지한다.
+  - 반영: `README.md`, `.wiki/index.md`, `.project/core_project.md`, `docs/product-spec.md`, `docs/development-infra.md`, `docs/database-design.md`
 - 2026-05-23: 환경별 ENV 파일과 실행 스크립트 분리
   - 추가: `.env.dev`, `.env.prd`, `scripts/local.sh`, `scripts/prd.sh`, `scripts/local.ps1`, `scripts/prd.ps1`
   - 변경: `app/settings.py`, `scripts/dev.sh`, `scripts/dev.ps1`
@@ -16,7 +20,7 @@
   - 생성: `docs/database-design.md`
   - 반영: `.wiki/index.md`
 - 2026-05-22: `docs/` 문서 위키화와 공식 문서 검증
-  - 대상: `docs/product-spec.md`, `docs/technical-spec.md`, `docs/development-infra.md`, `docs/privacy-compliance.md`, `docs/fastapi-quickstart.md`
+  - 대상: `docs/product-spec.md`, `docs/development-infra.md`, `docs/privacy-compliance.md`, `docs/fastapi-quickstart.md`
   - 반영: `.wiki/index.md`, `.wiki/insights.md`
   - 확인: OpenAI, Gemini, Supabase, Google Cloud, Cloudflare R2, Upstash, 개인정보보호위원회 공식 문서
 - 2026-05-22: LLM Wiki를 최소 구조로 재시작
@@ -25,6 +29,7 @@
 
 ## 이력관리
 
+- 2026-05-24: `docs/` 문서 체계 정리 이력 추가
 - 2026-05-23: 환경별 ENV 파일과 실행 스크립트 분리 이력 추가
 - 2026-05-23: 로컬 인프라와 실행 스크립트 재정리 이력 추가
 - 2026-05-22: MVP DB 설계 작업 이력 추가

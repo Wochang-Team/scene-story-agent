@@ -2,7 +2,7 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: infra/postgres/Dockerfile
+      dockerfile: scripts/postgres/Dockerfile
     image: scene-story-agent-postgres:18.4-pgvector
     container_name: scene-story-agent-postgres
     environment:
@@ -13,7 +13,7 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres18_data:/var/lib/postgresql/18/docker
-      - ./infra/postgres/initdb:/docker-entrypoint-initdb.d:ro
+      - ./scripts/postgres/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s

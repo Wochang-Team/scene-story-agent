@@ -6,10 +6,9 @@
 
 현재 프로젝트 문서는 `docs/`를 기준으로 읽는다.
 
-- [프로덕트 스펙](../docs/product-spec.md): 원본 기록, AI 해석 정보, 벡터 연결, 타임라인, MVP 범위
-- [기술 스펙](../docs/technical-spec.md): FastAPI, PostgreSQL, pgvector, AI Provider, 비동기 처리, 삭제 연계
+- [프로덕트 스펙](../docs/product-spec.md): 원본 기록, AI 해석 정보, 관련 기록 연결, 타임라인, MVP 범위
 - [DB 설계](../docs/database-design.md): 원본 기록, 파일, AI 해석, 임베딩, 연결 후보, 작업 상태 테이블 설계
-- [개발 인프라](../docs/development-infra.md): Cloud Run, Supabase, Cloudflare R2, Upstash Redis, OpenAI/Gemini 운영 후보
+- [개발 인프라](../docs/development-infra.md): 기술 선택 기준, API 서버, PostgreSQL, Redis, Object Storage, OpenAI/Gemini 운영 후보
 - [개인정보 보호 조치](../docs/privacy-compliance.md): 개인정보 분류, 동의, AI 처리, 위치성 정보, 삭제, 출시 전 점검
 - [FastAPI 빠른 시작](../docs/fastapi-quickstart.md): Windows PowerShell 기준 로컬 실행 절차
 
@@ -31,6 +30,8 @@
 - 운영:
   - 개발 데이터와 운영 데이터는 공유하지 않는다.
   - AI Provider, 스토리지, DB, Redis는 교체 가능한 경계로 둔다.
+  - MVP 작업 처리는 API 서버와 PostgreSQL `processing_jobs`를 기준으로 시작한다.
+  - 별도 작업 프로세스는 API 응답 지연이나 작업량 증가 시 검토한다.
 - 환경 파일:
   - `local`은 `.env.local`을 읽는다.
   - `dev`는 `.env.dev`를 읽는다.
@@ -56,9 +57,7 @@
   - PostgreSQL 18은 `uuidv7()`를 제공하므로 신규 PK 생성 기준은 UUID v7로 둔다.
   - 로컬 DB는 PostgreSQL 18.4 + pgvector 포함 이미지로 실행한다.
 - Google Cloud:
-  - Cloud Tasks는 Cloud Run 서비스로 비동기 작업을 밀어 넣는 용도에 맞다.
-  - Cloud Tasks timeout을 넘는 작업은 Cloud Run Jobs 검토가 필요하다.
-  - Cloud Run Jobs는 단일 작업 또는 최대 10,000개 독립 task 병렬 실행 구조를 지원한다.
+  - Cloud Tasks와 Cloud Run Jobs는 별도 작업 프로세스가 필요해질 때 검토할 수 있다.
 - Cloudflare R2:
   - R2 presigned URL은 특정 객체와 작업에 대한 임시 접근을 제공한다.
   - URL 자체를 bearer token처럼 취급해야 하며, 민감 작업은 짧은 만료 시간을 사용한다.
@@ -104,7 +103,6 @@
 
 ## 이력관리
 
-- 2026-05-23: 환경별 ENV 파일과 실행 스크립트 기준 반영
-- 2026-05-23: PostgreSQL 18, UUID v7, 로컬 pgvector 이미지 기준 반영
-- 2026-05-22: DB 설계 문서 링크 추가
+- 2026-05-24: 문서 체계 정리에 맞춰 색인 정리
+- 2026-05-23: 환경별 ENV 파일, 실행 스크립트, PostgreSQL 18, UUID v7 기준 반영
 - 2026-05-22: `docs/` 문서 기반 위키 색인과 공식 검증 결과 작성
