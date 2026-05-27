@@ -48,13 +48,13 @@ Provider 선택은 모델 품질보다 운영 조건까지 함께 본다.
 
 ## 인프라 설계
 
-MVP 인프라는 관리형 서비스 조합이 맞다.
+MVP 인프라는 자체 서버와 PostgreSQL 중심으로 시작한다.
 
-- API 서버는 Cloud Run 같은 컨테이너 실행 환경으로 시작한다.
-- 짧은 비동기 요청은 Cloud Tasks, 길거나 병렬 처리가 필요한 작업은 Cloud Run Jobs를 검토한다.
-- Supabase Postgres + pgvector는 MVP에서 정형 데이터와 벡터 데이터를 한 저장소에서 다루기 좋다.
-- R2 presigned URL은 bearer token처럼 다루고 만료 시간을 짧게 둔다.
-- Upstash Redis는 Redis 호환 서비스지만 사용할 명령은 호환성 확인이 필요하다.
+- API 서버는 자체 서버의 컨테이너 또는 systemd 서비스로 실행한다.
+- PostgreSQL 18 + pgvector를 중심 저장소로 사용한다.
+- Redis는 짧은 TTL 상태, 중복 실행 방지, 임시 캐시에 사용한다.
+- 원본 파일은 비공개 Object Storage 또는 사설 파일 저장소에 저장한다.
+- 별도 작업 프로세스는 API 응답 지연이나 작업량 증가 시 검토한다.
 
 ## 개인정보
 
@@ -67,4 +67,5 @@ MVP 인프라는 관리형 서비스 조합이 맞다.
 
 ## 이력관리
 
+- 2026-05-27: 자체 서버와 PostgreSQL 중심 인프라 인사이트로 갱신
 - 2026-05-22: `docs/` 문서와 공식 검증 결과에서 프로젝트 인사이트 작성

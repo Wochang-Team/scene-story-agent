@@ -120,6 +120,10 @@ MVP 테이블은 기록 생성과 AI 처리 흐름을 우선한다.
 - 제약:
   - `unique(auth_provider, auth_subject)`
   - `deleted_at is null`인 사용자만 기본 조회 대상으로 사용한다.
+- Redis 보조:
+  - `user:auth:{auth_provider}:{auth_subject}`는 내부 `user_id` 조회 캐시로 사용한다.
+  - `user:profile:{user_id}`는 사용자 기본 정보 캐시로 사용한다.
+  - Redis cache miss 시 `app_users`를 기준으로 다시 조회한다.
 - 확인 필요:
   - 인증 Provider는 구현 전 확정한다.
 
@@ -195,14 +199,20 @@ AI가 생성한 해석 정보와 사용자 수정 정보를 저장한다.
 | `summary` | `text` | 아니오 | 요약 |
 | `ocr_candidates` | `jsonb` | 아니오 | OCR 후보 |
 | `place_candidates` | `jsonb` | 아니오 | 장소 후보 |
-| `menu_candidates` | `jsonb` | 아니오 | 메뉴 또는 활동 후보 |
+| `visit_time_candidates` | `jsonb` | 아니오 | 방문 시간 후보 |
+| `menu_candidates` | `jsonb` | 아니오 | 메뉴 후보 |
+| `activity_candidates` | `jsonb` | 아니오 | 활동 후보 |
 | `amount_candidates` | `jsonb` | 아니오 | 금액 후보 |
+| `similar_record_candidates` | `jsonb` | 아니오 | 유사 기록 후보 |
+| `revisit_candidates` | `jsonb` | 아니오 | 재방문 후보 |
+| `timeline_candidates` | `jsonb` | 아니오 | 타임라인 후보 |
 | `tags` | `jsonb` | 아니오 | 태그 목록 |
 | `user_corrections` | `jsonb` | 아니오 | 사용자 수정값 |
 | `raw_response_ref` | `jsonb` | 아니오 | 원문 응답 참조 정보 |
 | `status` | `text` | 예 | AI 해석 상태 |
 | `created_at` | `timestamptz` | 예 | 생성 시각 |
 | `updated_at` | `timestamptz` | 예 | 수정 시각 |
+| `deleted_at` | `timestamptz` | 아니오 | 삭제 시각 |
 
 - 허용 상태:
   - `pending`
@@ -330,8 +340,48 @@ AI 분석과 임베딩 생성 작업 상태를 저장한다.
   - `canceled`
 - 기준:
   - PostgreSQL은 최종 추적 가능한 작업 상태를 저장한다.
-  - Redis는 짧은 TTL 상태, 중복 실행 방지, 임시 캐시에 사용한다.
+  - Redis는 작업 실행 lock, 작업 상태 캐시, 중복 등록 완화에만 사용한다.
   - 작업 재시도와 실패 원인은 `processing_jobs`를 기준으로 판단한다.
+
+### Redis 보조 key
+
+Redis key는 정본 데이터가 아니라 보조 최적화 값이다.
+
+- 작업 처리:
+  - `job:lock:{job_id}`:
+    - 같은 작업의 동시 실행을 완화한다.
+    - TTL은 5분으로 둔다.
+    - 값은 실행 token으로 둔다.
+  - `job:state:{job_id}`:
+    - 작업 상태 조회를 캐시한다.
+    - TTL은 30~60초로 둔다.
+    - cache miss 시 `processing_jobs`에서 조회한다.
+  - `record:job:dedupe:{record_id}:{job_type}`:
+    - 같은 기록의 같은 작업 중복 등록을 완화한다.
+    - TTL은 5분으로 둔다.
+    - hit 시 기존 `job_id`를 반환한다.
+- 로그인 보조:
+  - `session:{session_id}`:
+    - 로그인 세션 캐시로 사용한다.
+    - MVP TTL은 7일로 둔다.
+    - Redis 값이 없으면 재로그인 또는 서버 세션 재검증으로 복구한다.
+    - 강제 로그아웃이나 기기별 세션 관리가 필요하면 PostgreSQL `user_sessions`를 정본으로 추가한다.
+  - `user:auth:{auth_provider}:{auth_subject}`:
+    - 인증 주체에서 내부 `user_id`를 찾는 캐시로 사용한다.
+    - TTL은 10분~1시간으로 둔다.
+  - `user:profile:{user_id}`:
+    - 사용자 기본 정보 캐시로 사용한다.
+    - TTL은 10분으로 둔다.
+  - `auth:rate:{key}`:
+    - 로그인과 인증 요청 제한에 사용한다.
+    - TTL은 1분으로 둔다.
+
+- 저장 제외:
+  - API key
+  - 원본 파일 URL
+  - OCR 원문
+  - AI Provider 응답 원문
+  - 장기 보관이 필요한 작업 상태
 
 ## 5. 삭제 연계
 
@@ -388,8 +438,8 @@ AI 분석과 임베딩 생성 작업 상태를 저장한다.
   - 같은 사용자 기록만 조회
   - 삭제된 기록 제외
 - 구현 기준:
-  - Supabase를 쓰는 경우 pgvector 연산은 Postgres 함수로 감싼다.
-  - API 서버는 해당 함수를 `rpc()` 또는 SQLAlchemy text query로 호출한다.
+  - pgvector 연산은 Postgres 함수로 감싸거나 서버 SQL query 경계에서 호출한다.
+  - API 서버는 Postgres 함수 또는 SQLAlchemy text query로 호출한다.
 
 ## 7. 초기 SQL 초안
 
@@ -410,8 +460,8 @@ AI 분석과 임베딩 생성 작업 상태를 저장한다.
   - `.project/core_workflow.md`의 환경 변수와 Docker Compose 기준을 따른다.
   - 로컬에서는 별도 앱 계정 분리를 필수로 두지 않는다.
 - dev/prd 실행:
-  - 서버 또는 관리형 DB의 관리자 계정을 사용한다.
-  - 실제 비밀번호는 Secret Manager 또는 동등한 도구에서 주입한다.
+  - 자체 운영 PostgreSQL의 관리자 계정을 사용한다.
+  - 실제 비밀번호는 서버 환경 변수 또는 secret 파일로 주입한다.
 
 관리자 DB에서 실행한다.
 
@@ -525,14 +575,20 @@ create table record_ai_interpretations (
     summary text,
     ocr_candidates jsonb,
     place_candidates jsonb,
+    visit_time_candidates jsonb,
     menu_candidates jsonb,
+    activity_candidates jsonb,
     amount_candidates jsonb,
+    similar_record_candidates jsonb,
+    revisit_candidates jsonb,
+    timeline_candidates jsonb,
     tags jsonb,
     user_corrections jsonb,
     raw_response_ref jsonb,
     status text not null default 'pending',
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
+    deleted_at timestamptz,
     check (status in ('pending', 'completed', 'failed', 'user_edited'))
 );
 
@@ -622,8 +678,9 @@ create table processing_jobs (
 - AI Provider 응답 원문 보관 여부와 보관 위치
 - Object Storage Provider별 `bucket_name`, `object_key` 네이밍 규칙
 - 물리 삭제와 soft delete의 운영 기준
-- Supabase Row Level Security 적용 여부
-- Supabase 운영 DB가 PostgreSQL 18과 `uuidv7()`를 지원하는지 확인
+- 자체 운영 PostgreSQL의 백업, 복구, 권한 분리 기준
+- 운영 DB가 PostgreSQL 18과 `uuidv7()`를 지원하는지 확인
+- 운영 단계에서 PostgreSQL `user_sessions` 테이블이 필요한지 확인
 
 ## 9. 출처
 
@@ -637,6 +694,7 @@ create table processing_jobs (
 
 ## 이력관리
 
+- 2026-05-27: AI 해석 후보에 방문 시간, 활동, 유사 기록, 재방문, 타임라인 후보 컬럼 추가
 - 2026-05-24: 인프라 실행 절차를 정본 문서 참조로 대체하고 출처 정리
 - 2026-05-23: PostgreSQL 18, pgvector, UUID v7, 관리자·앱 계정 기준 반영
 - 2026-05-22: MVP DB 설계 초안 작성

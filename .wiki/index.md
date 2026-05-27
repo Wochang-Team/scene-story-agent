@@ -8,7 +8,7 @@
 
 - [프로덕트 스펙](../docs/product-spec.md): 원본 기록, AI 해석 정보, 관련 기록 연결, 타임라인, MVP 범위
 - [DB 설계](../docs/database-design.md): 원본 기록, 파일, AI 해석, 임베딩, 연결 후보, 작업 상태 테이블 설계
-- [개발 인프라](../docs/development-infra.md): 기술 선택 기준, API 서버, PostgreSQL, Redis, Object Storage, OpenAI/Gemini 운영 후보
+- [개발 인프라](../docs/development-infra.md): 자체 서버, PostgreSQL, Redis, Object Storage, OpenAI/Gemini 운영 기준
 - [개인정보 보호 조치](../docs/privacy-compliance.md): 개인정보 분류, 동의, AI 처리, 위치성 정보, 삭제, 출시 전 점검
 - [FastAPI 빠른 시작](../docs/fastapi-quickstart.md): Windows PowerShell 기준 로컬 실행 절차
 
@@ -32,6 +32,7 @@
   - AI Provider, 스토리지, DB, Redis는 교체 가능한 경계로 둔다.
   - MVP 작업 처리는 API 서버와 PostgreSQL `processing_jobs`를 기준으로 시작한다.
   - 별도 작업 프로세스는 API 응답 지연이나 작업량 증가 시 검토한다.
+  - 서버는 자체 운영을 기준으로 한다.
 - 환경 파일:
   - `local`은 `.env.local`을 읽는다.
   - `dev`는 `.env.dev`를 읽는다.
@@ -50,20 +51,18 @@
   - `gemini-2.5-flash-lite` 유료 가격은 입력 $0.10/1M, 출력 $0.40/1M으로 확인된다.
   - Free Tier는 모델별 제한 안에서 무료지만, Google 문서는 Free Tier 데이터가 제품 개선에 사용될 수 있고 Paid Tier는 사용되지 않는다고 구분한다.
   - `gemini-embedding-001`은 Gemini API와 Vertex AI에서 일반 제공 중이며 가격은 입력 $0.15/1M tokens로 확인된다.
-- Supabase와 pgvector:
-  - Supabase는 Postgres와 pgvector 기반 AI/Vectors 툴킷을 제공한다.
-  - Supabase client는 PostgREST를 거치므로 pgvector 유사도 연산은 Postgres 함수로 감싼 뒤 `rpc()`로 호출하는 방식이 공식 예시에 나온다.
+- PostgreSQL과 pgvector:
+  - PostgreSQL 18과 pgvector를 자체 운영 기준으로 사용한다.
+  - pgvector 유사도 연산은 Postgres 함수 또는 서버 SQL query 경계를 기준으로 설계한다.
 - PostgreSQL:
   - PostgreSQL 18은 `uuidv7()`를 제공하므로 신규 PK 생성 기준은 UUID v7로 둔다.
   - 로컬 DB는 PostgreSQL 18.4 + pgvector 포함 이미지로 실행한다.
-- Google Cloud:
-  - Cloud Tasks와 Cloud Run Jobs는 별도 작업 프로세스가 필요해질 때 검토할 수 있다.
-- Cloudflare R2:
-  - R2 presigned URL은 특정 객체와 작업에 대한 임시 접근을 제공한다.
-  - URL 자체를 bearer token처럼 취급해야 하며, 민감 작업은 짧은 만료 시간을 사용한다.
-- Upstash:
-  - Upstash Redis는 serverless Redis 호환 서비스다.
-  - Redis API 전체가 아니라 대부분을 지원하므로 사용할 명령은 호환성 문서를 확인해야 한다.
+- Object Storage:
+  - 원본 파일은 비공개 저장소에 저장한다.
+  - 서명 URL을 쓰는 경우 bearer token처럼 취급하고 만료 시간을 짧게 둔다.
+- Redis:
+  - Redis는 짧은 TTL 상태, 중복 실행 방지, 임시 캐시에 사용한다.
+  - 영구 작업 상태와 재시도 기준은 PostgreSQL에 남긴다.
 - 한국 개인정보:
   - 개인정보 처리방침 작성지침 2025.4. 공식 게시가 확인된다.
   - 사진, 메모, 위치성 정보, AI 해석 정보, 임베딩을 개인정보 또는 개인정보에 준하는 데이터로 취급하는 현재 문서 방향은 출시 전 법률 검토 전제와 맞다.
@@ -75,8 +74,8 @@
 - `docs/development-infra.md`의 AI 비용 시뮬레이션은 공식 단가와 입력 토큰 산정 방식이 바뀔 수 있으므로 출시 전 재계산한다.
 - OpenAI 이미지 detail 정책은 모델별 차이가 있으므로 `gpt-5.4`와 `gpt-5.4-mini`를 구분해 문서화한다.
 - Gemini Free Tier는 개발·검증 전용으로만 사용하고, 개인정보 처리 검증이 필요한 환경은 Paid Tier 기준으로 본다.
-- R2 presigned URL을 브라우저에서 쓰면 CORS 설정과 URL 노출 범위를 별도로 검토한다.
-- Supabase pgvector 검색 API는 직접 SQL 호출이 아니라 Postgres 함수와 `rpc()` 경계를 기준으로 설계한다.
+- 서명 URL을 브라우저에서 쓰면 CORS 설정과 URL 노출 범위를 별도로 검토한다.
+- pgvector 검색 API는 Postgres 함수 또는 서버 SQL query 경계를 기준으로 설계한다.
 - 위치성 정보 기능이 구체화되면 위치정보법 적용 여부를 별도로 검토한다.
 
 ## 공식 출처
@@ -93,16 +92,13 @@
 - Gemini API Billing, 확인일 2026-05-22: https://ai.google.dev/gemini-api/docs/billing
 - Gemini API Rate limits, 확인일 2026-05-22: https://ai.google.dev/gemini-api/docs/rate-limits
 - Gemini Embedding announcement, 확인일 2026-05-22: https://developers.googleblog.com/en/gemini-embedding-available-gemini-api/
-- Supabase AI & Vectors, 확인일 2026-05-22: https://supabase.com/docs/guides/ai
-- Supabase Vector columns, 확인일 2026-05-22: https://supabase.com/docs/guides/ai/vector-columns
-- Google Cloud Run Cloud Tasks, 확인일 2026-05-22: https://docs.cloud.google.com/run/docs/triggering/using-tasks
-- Google Cloud Run Jobs, 확인일 2026-05-22: https://docs.cloud.google.com/run/docs/create-jobs
-- Cloudflare R2 Presigned URLs, 확인일 2026-05-22: https://developers.cloudflare.com/r2/api/s3/presigned-urls/
-- Upstash Redis FAQ, 확인일 2026-05-22: https://upstash.com/docs/redis/help/faq
+- pgvector GitHub, 확인일 2026-05-22: https://github.com/pgvector/pgvector
+- Redis 공식 문서, 확인일 2026-05-23: https://redis.io/docs/latest/
 - 개인정보 처리방침 작성지침 2025.4., 확인일 2026-05-22: https://m.pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&mCode=G010030020&nttId=11134
 
 ## 이력관리
 
+- 2026-05-27: 자체 서버 운영 기준으로 인프라 색인 정리
 - 2026-05-24: 문서 체계 정리에 맞춰 색인 정리
 - 2026-05-23: 환경별 ENV 파일, 실행 스크립트, PostgreSQL 18, UUID v7 기준 반영
 - 2026-05-22: `docs/` 문서 기반 위키 색인과 공식 검증 결과 작성

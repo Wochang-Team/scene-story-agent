@@ -26,6 +26,7 @@ htmlcov/
 *.log
 *.tmp
 *.temp
+.local_storage/
 
 # OS and editor local files
 .DS_Store

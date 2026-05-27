@@ -2,9 +2,15 @@ from fastapi import FastAPI
 import psycopg
 from redis import Redis
 
+from app.routers.jobs import router as jobs_router
+from app.routers.records import router as records_router
+from app.routers.ui import router as ui_router
 from app.settings import get_settings
 
 app = FastAPI(title="scene-story-agent")
+app.include_router(jobs_router)
+app.include_router(records_router)
+app.include_router(ui_router)
 
 
 @app.get("/")
@@ -13,6 +19,7 @@ async def root() -> dict[str, str]:
 
 
 @app.get("/health")
+@app.get("/health/live")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
 

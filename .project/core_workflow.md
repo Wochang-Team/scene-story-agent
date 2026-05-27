@@ -149,7 +149,7 @@ curl http://127.0.0.1:8000/health/ready
   - `REDIS_PORT`: `6379`
 - 관리 기준:
   - 실제 비밀번호와 API 키는 커밋하지 않는다.
-  - 운영 환경에서는 Secret Manager 또는 동등한 비밀값 관리 도구를 사용한다.
+  - 운영 환경에서는 서버 환경 변수 또는 secret 파일로 비밀값을 주입한다.
 
 ## 배포/산출물
 배포 산출물은 아직 구현 파일로 확정되지 않았다.
@@ -162,9 +162,10 @@ curl http://127.0.0.1:8000/health/ready
   - 배포 설정 파일
   - DB 마이그레이션 설정
 - 문서상 권장 방향:
-  - FastAPI 컨테이너를 Cloud Run 또는 동등한 실행 환경에 배포한다.
-  - PostgreSQL은 Supabase Postgres 또는 pgvector 지원 PostgreSQL을 사용한다.
-  - Redis는 Upstash Redis 또는 동등한 Redis 서비스를 사용한다.
+  - FastAPI API 서버는 자체 서버의 컨테이너 또는 systemd 서비스로 배포한다.
+  - PostgreSQL은 자체 운영 PostgreSQL 18 + pgvector를 사용한다.
+  - Redis는 자체 운영 Redis 8.6 또는 동등한 Redis를 사용한다.
+  - 원본 파일은 자체 S3 호환 Object Storage 또는 사설 파일 저장소를 사용한다.
 - 배포 전 확인:
   - Python 버전 고정
   - 운영 환경 변수 목록 확정
@@ -204,6 +205,7 @@ curl http://127.0.0.1:8000/health/ready
 - DB 마이그레이션 명령
 
 ## 이력관리
+- 2026-05-27: 운영 배포 방향을 자체 서버 기준으로 수정
 - 2026-05-23: `local`, `dev`, `prd` 실행 스크립트와 ENV 파일 기준 추가
 - 2026-05-23: 로컬 PostgreSQL 18.4 + pgvector, Redis 8.6 기준으로 갱신
 - 2026-05-21: Python/FastAPI 기준 개발 워크플로우 문서 생성

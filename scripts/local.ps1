@@ -11,7 +11,10 @@ $RequiredEnvKeys = @(
     "POSTGRES_HOST",
     "POSTGRES_PORT",
     "REDIS_HOST",
-    "REDIS_PORT"
+    "REDIS_PORT",
+    "LOCAL_STORAGE_ROOT",
+    "LOCAL_STORAGE_BUCKET",
+    "LOCAL_FILE_MAX_BYTES"
 )
 
 function Test-Command {
@@ -46,6 +49,23 @@ POSTGRES_PORT=5432
 
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
+
+LOCAL_STORAGE_ROOT=.local_storage
+LOCAL_STORAGE_BUCKET=local
+LOCAL_FILE_MAX_BYTES=52428800
+
+AI_PROVIDER=mock
+AI_MODEL=mock-scene-v1
+AI_TIMEOUT_SECONDS=30
+AI_MAX_RETRIES=2
+AI_IMAGE_MAX_BYTES=5242880
+EMBEDDING_PROVIDER=mock
+EMBEDDING_MODEL=mock-embedding-v1
+EMBEDDING_DIMENSION=8
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+SIMILAR_RECORDS_LIMIT=5
+SIMILARITY_THRESHOLD=0.70
 "@ | Set-Content -Path $env:ENV_FILE -Encoding UTF8
 
     Write-Host "$env:ENV_FILE 파일을 기본 로컬 값으로 생성했습니다."
@@ -78,8 +98,11 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 docker compose --env-file $env:ENV_FILE up --build -d postgres redis
-docker compose --env-file $env:ENV_FILE exec -T postgres `
-    sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "create extension if not exists vector;"'
+
+Get-ChildItem "scripts/postgres/initdb" -Filter "*.sql" | Sort-Object Name | ForEach-Object {
+    Get-Content $_.FullName -Raw | docker compose --env-file $env:ENV_FILE exec -T postgres `
+        sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+}
 
 Write-Host "local 환경으로 API 서버를 실행합니다: http://127.0.0.1:8000"
 Write-Host "종료하려면 Ctrl+C를 누르세요."

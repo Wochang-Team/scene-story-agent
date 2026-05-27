@@ -1,0 +1,195 @@
+{
+  "app_users": {
+    "user_id": "019e6961-6ec0-7628-9225-1546977ff10e",
+    "auth_provider": "local",
+    "auth_subject": "sample-user",
+    "email": "sample@example.local",
+    "display_name": "Sample User",
+    "created_at": "2026-05-27T12:20:53.000000Z",
+    "updated_at": "2026-05-27T12:20:53.000000Z",
+    "deleted_at": null
+  },
+  "records": {
+    "record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "user_id": "019e6961-6ec0-7628-9225-1546977ff10e",
+    "memo": "Cafe latte and quiet work",
+    "emotion": "joy",
+    "satisfaction_score": 5,
+    "happened_at": "2026-05-27T11:30:00.000000Z",
+    "status": "ready",
+    "created_at": "2026-05-27T12:20:53.000000Z",
+    "updated_at": "2026-05-27T12:21:10.000000Z",
+    "deleted_at": null
+  },
+  "record_assets": {
+    "asset_id": "019e6961-6ed6-79e0-a041-fc2837d9c11f",
+    "record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "asset_type": "photo",
+    "storage_provider": "local",
+    "bucket_name": "local",
+    "object_key": "users/019e6961-6ec0-7628-9225-1546977ff10e/records/019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce/assets/sample.jpg",
+    "content_type": "image/jpeg",
+    "byte_size": 516,
+    "width": 1024,
+    "height": 768,
+    "duration_seconds": null,
+    "checksum_sha256": "a79ec3f52bbf931f951fc970321ea07fea6818f66b2e950805eb63b9dbe832fc",
+    "created_at": "2026-05-27T12:20:53.100000Z",
+    "deleted_at": null
+  },
+  "record_ai_interpretations": {
+    "interpretation_id": "019e6961-6ee1-77c3-9406-57c31e3702bd",
+    "record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "provider": "mock",
+    "model": "mock-scene-v1",
+    "scene_type": "cafe",
+    "summary": "A cafe table scene with a latte and notebook.",
+    "ocr_candidates": [
+      {
+        "text": "LATTE",
+        "confidence": 0.82
+      }
+    ],
+    "place_candidates": [
+      {
+        "name": "Sample Cafe",
+        "confidence": 0.74
+      }
+    ],
+    "visit_time_candidates": [
+      {
+        "started_at": "2026-05-27T11:30:00.000000Z",
+        "ended_at": null,
+        "confidence": 0.68
+      }
+    ],
+    "menu_candidates": [
+      {
+        "name": "Latte",
+        "confidence": 0.91
+      }
+    ],
+    "activity_candidates": [
+      {
+        "name": "quiet work",
+        "confidence": 0.77
+      }
+    ],
+    "amount_candidates": [
+      {
+        "amount": 5500,
+        "currency": "KRW",
+        "confidence": 0.64
+      }
+    ],
+    "similar_record_candidates": [
+      {
+        "record_id": "019e6961-6f0b-7fa8-a750-ea4eeac68d49",
+        "similarity_score": "0.91000",
+        "reason": "similar cafe scene"
+      }
+    ],
+    "revisit_candidates": [
+      {
+        "record_id": "019e6961-6f0b-7fa8-a750-ea4eeac68d49",
+        "place_name": "Sample Cafe",
+        "confidence": 0.86
+      }
+    ],
+    "timeline_candidates": [
+      {
+        "timeline_type": "scene_type",
+        "grouping_key": "cafe",
+        "confidence": 0.85
+      }
+    ],
+    "tags": [
+      "cafe",
+      "latte",
+      "work"
+    ],
+    "user_corrections": {
+      "scene_type": "cafe"
+    },
+    "raw_response_ref": {
+      "provider_response_id": "sample-response-id",
+      "storage": "inline-test-fixture"
+    },
+    "status": "completed",
+    "created_at": "2026-05-27T12:21:00.000000Z",
+    "updated_at": "2026-05-27T12:21:00.000000Z",
+    "deleted_at": null
+  },
+  "record_embeddings": {
+    "embedding_id": "019e6961-6ef0-73e6-b9c9-ad9fb5f38c35",
+    "record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "provider": "mock",
+    "model": "mock-embedding-v1",
+    "dimension": 8,
+    "embedding": [
+      0.12,
+      0.18,
+      0.21,
+      0.09,
+      0.15,
+      0.08,
+      0.11,
+      0.06
+    ],
+    "input_snapshot": {
+      "memo": "Cafe latte and quiet work",
+      "emotion": "joy",
+      "satisfaction_score": 5,
+      "scene_type": "cafe",
+      "tags": [
+        "cafe",
+        "latte",
+        "work"
+      ]
+    },
+    "created_at": "2026-05-27T12:21:02.000000Z",
+    "deleted_at": null
+  },
+  "record_relations": {
+    "relation_id": "019e6961-6f05-7156-b52c-b0709fcfd3d5",
+    "source_record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "target_record_id": "019e6961-6f0b-7fa8-a750-ea4eeac68d49",
+    "relation_type": "similar_scene",
+    "similarity_score": "0.91000",
+    "decision_status": "suggested",
+    "reasons": {
+      "matched_fields": [
+        "scene_type",
+        "tags"
+      ]
+    },
+    "created_at": "2026-05-27T12:21:03.000000Z",
+    "updated_at": "2026-05-27T12:21:03.000000Z"
+  },
+  "timeline_candidates": {
+    "timeline_candidate_id": "019e6961-6f11-7599-a920-11f62a3cf22f",
+    "user_id": "019e6961-6ec0-7628-9225-1546977ff10e",
+    "record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "timeline_type": "scene_type",
+    "grouping_key": "cafe",
+    "confidence_score": "0.85000",
+    "reasons": {
+      "source": "ai_interpretation.scene_type"
+    },
+    "created_at": "2026-05-27T12:21:04.000000Z"
+  },
+  "processing_jobs": {
+    "job_id": "019e6961-6f1d-7393-b8da-f2bc227b8be3",
+    "record_id": "019e6961-6ec2-77b9-bdc9-c66ba2a5f4ce",
+    "job_type": "extract_ai_interpretation",
+    "status": "succeeded",
+    "attempt_count": 1,
+    "last_error_code": null,
+    "last_error_message": null,
+    "available_at": "2026-05-27T12:20:53.000000Z",
+    "started_at": "2026-05-27T12:20:55.000000Z",
+    "finished_at": "2026-05-27T12:21:00.000000Z",
+    "created_at": "2026-05-27T12:20:53.000000Z",
+    "updated_at": "2026-05-27T12:21:00.000000Z"
+  }
+}
