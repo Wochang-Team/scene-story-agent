@@ -7,6 +7,7 @@ from redis import Redis
 
 from app.database import get_connection
 from app.dependencies import get_current_user_id
+from app.logging import log_event
 from app.redis_client import get_redis
 from app.repositories import jobs as job_repository
 from app.repositories import records as record_repository
@@ -26,6 +27,7 @@ def get_job(
 ) -> dict[str, Any]:
     job = job_repository.get_job_for_user(connection, job_id, user_id)
     if job is None:
+        log_event("job.not_found", user_id=str(user_id), job_id=str(job_id))
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Job not found.",
@@ -42,6 +44,7 @@ def list_record_jobs(
 ) -> dict[str, list[dict[str, Any]]]:
     record = record_repository.get_record(connection, user_id, record_id)
     if record is None:
+        log_event("record.not_found", user_id=str(user_id), record_id=str(record_id))
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Record not found.",
@@ -61,10 +64,18 @@ def claim_job(
 ) -> dict[str, Any]:
     claimed = job_service.claim_next_job(connection, redis_client)
     if claimed is None:
+        log_event("job.claim_empty")
         return {"job": None, "lock_token": None}
 
     job, lock_token = claimed
     connection.commit()
+    log_event(
+        "job.claimed",
+        job_id=str(job["job_id"]),
+        record_id=str(job["record_id"]),
+        job_type=job["job_type"],
+        status=job["status"],
+    )
     return {"job": job, "lock_token": lock_token}
 
 
@@ -77,6 +88,7 @@ def succeed_job(
 ) -> dict[str, Any]:
     job = job_repository.mark_succeeded(connection, job_id)
     if job is None:
+        log_event("job.succeed_failed", job_id=str(job_id), reason="running_job_not_found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Running job not found.",
@@ -85,6 +97,13 @@ def succeed_job(
     connection.commit()
     redis_cache.cache_job_state(redis_client, job_id, job["status"])
     redis_cache.release_job_lock(redis_client, job_id, payload.lock_token)
+    log_event(
+        "job.succeeded",
+        job_id=str(job["job_id"]),
+        record_id=str(job["record_id"]),
+        job_type=job["job_type"],
+        status=job["status"],
+    )
     return job
 
 
@@ -102,6 +121,7 @@ def fail_job(
         error_message=payload.error_message,
     )
     if job is None:
+        log_event("job.fail_failed", job_id=str(job_id), reason="running_job_not_found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Running job not found.",
@@ -110,6 +130,14 @@ def fail_job(
     connection.commit()
     redis_cache.cache_job_state(redis_client, job_id, job["status"])
     redis_cache.release_job_lock(redis_client, job_id, payload.lock_token)
+    log_event(
+        "job.failed",
+        job_id=str(job["job_id"]),
+        record_id=str(job["record_id"]),
+        job_type=job["job_type"],
+        status=job["status"],
+        last_error_code=job["last_error_code"],
+    )
     return job
 
 
@@ -122,6 +150,7 @@ def cancel_job(
 ) -> dict[str, Any]:
     job = job_repository.cancel_job(connection, job_id)
     if job is None:
+        log_event("job.cancel_failed", job_id=str(job_id), reason="active_job_not_found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Active job not found.",
@@ -130,4 +159,11 @@ def cancel_job(
     connection.commit()
     redis_cache.cache_job_state(redis_client, job_id, job["status"])
     redis_cache.release_job_lock(redis_client, job_id, payload.lock_token)
+    log_event(
+        "job.canceled",
+        job_id=str(job["job_id"]),
+        record_id=str(job["record_id"]),
+        job_type=job["job_type"],
+        status=job["status"],
+    )
     return job

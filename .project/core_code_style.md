@@ -107,18 +107,35 @@ route handler는 얇게 유지한다.
   - 원본 이미지 URL, OCR 원문, 프롬프트 원문, API 키는 예외 메시지에 넣지 않는다.
 
 ## 로깅
-현재 표준 로깅 도구는 확정되지 않았다.
+로그는 JSON 구조로 남긴다.
 
-- logger: 확인 필요
-- 포맷: 확인 필요
+- logger:
+  - 표준 `logging`
+  - logger name: `scene_story_agent`
+- 포맷:
+  - 로컬 개발 환경은 들여쓰기 된 JSON
+  - `timestamp`
+  - `level`
+  - `event`
+  - `request_id`
 - 민감정보 처리:
   - DB 비밀번호, API 키, 토큰은 로그에 남기지 않는다.
   - 원본 이미지 URL과 OCR 원문 전체는 로그에 남기지 않는다.
+  - 원본 이미지 base64와 Provider 인증 헤더는 로그에 남기지 않는다.
   - AI 호출 로그는 장애 대응에 필요한 최소 항목만 남긴다.
-- 권장 추적 키:
+- 추적 키:
   - `request_id`
   - `record_id`
   - `job_id`
+- 기본 이벤트:
+  - `request.completed`
+  - `request.failed`
+  - `record.created`
+  - `asset.stored`
+  - `ai.analysis.completed`
+  - `ai.analysis_failed`
+  - `embedding.created`
+  - `storage_json.read`
 
 ## 테스트 작성 기준
 테스트는 변경 경계를 기준으로 작성한다.
@@ -165,9 +182,9 @@ route handler는 얇게 유지한다.
 
 - Python 고정 버전
 - 공통 API 오류 응답 스키마
-- logging 또는 structlog 등 로깅 표준
 - ruff, black, isort, mypy, pyright 사용 여부
 - SQLAlchemy, Alembic 도입 여부
 
 ## 이력관리
+- 2026-05-28: MVP JSON 로깅 기준과 기본 이벤트 정의
 - 2026-05-21: Python/FastAPI 기준 코딩 스타일 문서 생성

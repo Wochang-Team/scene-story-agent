@@ -1,0 +1,3410 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "scene-story-agent",
+    "version": "0.1.0",
+    "description": "scene-story-agent local MVP API export for Apidog. Use X-Local-User header for local user context."
+  },
+  "paths": {
+    "/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Get Job",
+        "operationId": "get_job_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/records/{record_id}": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "List Record Jobs",
+        "operationId": "list_record_jobs_jobs_records__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/claim": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Claim Job",
+        "operationId": "claim_job_jobs_claim_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobClaimResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}/succeed": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Succeed Job",
+        "operationId": "succeed_job_jobs__job_id__succeed_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobLockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}/fail": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Fail Job",
+        "operationId": "fail_job_jobs__job_id__fail_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobFailureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}/cancel": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Cancel Job",
+        "operationId": "cancel_job_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobLockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Create Record",
+        "operationId": "create_record_records_post",
+        "parameters": [
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "List Records",
+        "operationId": "list_records_records_get",
+        "parameters": [
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}": {
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Get Record",
+        "operationId": "get_record_records__record_id__get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Update Record",
+        "operationId": "update_record_records__record_id__patch",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Delete Record",
+        "operationId": "delete_record_records__record_id__delete",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/storage-json": {
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Get Record Storage Json",
+        "operationId": "get_record_storage_json_records__record_id__storage_json_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageExportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/ai-analysis": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Analyze Record Scene",
+        "operationId": "analyze_record_scene_records__record_id__ai_analysis_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SceneAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Get Latest Record Scene Analysis",
+        "operationId": "get_latest_record_scene_analysis_records__record_id__ai_analysis_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SceneAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/assets": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Upload Asset",
+        "operationId": "upload_asset_records__record_id__assets_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_asset_records__record_id__assets_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "List Assets",
+        "operationId": "list_assets_records__record_id__assets_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/assets/{asset_id}/file": {
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Download Asset",
+        "operationId": "download_asset_records__record_id__assets__asset_id__file_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/assets/{asset_id}": {
+      "delete": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Delete Asset",
+        "operationId": "delete_asset_records__record_id__assets__asset_id__delete",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/embedding": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Build Record Embedding",
+        "operationId": "build_record_embedding_records__record_id__embedding_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmbeddingBuildResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/relations": {
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "List Record Relations",
+        "operationId": "list_record_relations_records__record_id__relations_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records/{record_id}/timeline-candidates": {
+      "get": {
+        "tags": [
+          "records"
+        ],
+        "summary": "List Record Timeline Candidates",
+        "operationId": "list_record_timeline_candidates_records__record_id__timeline_candidates_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "X-Local-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Local-User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineCandidateListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ui/upload": {
+      "get": {
+        "tags": [
+          "ui"
+        ],
+        "summary": "Upload Page",
+        "operationId": "upload_page_ui_upload_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Live Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Readiness",
+        "operationId": "readiness_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Readiness Health Ready Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssetListResponse": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/AssetResponse"
+            },
+            "type": "array",
+            "title": "Assets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assets"
+        ],
+        "title": "AssetListResponse"
+      },
+      "AssetResponse": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "asset_type": {
+            "type": "string",
+            "title": "Asset Type"
+          },
+          "storage_provider": {
+            "type": "string",
+            "title": "Storage Provider"
+          },
+          "bucket_name": {
+            "type": "string",
+            "title": "Bucket Name"
+          },
+          "object_key": {
+            "type": "string",
+            "title": "Object Key"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "byte_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byte Size"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "checksum_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Sha256"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id",
+          "record_id",
+          "asset_type",
+          "storage_provider",
+          "bucket_name",
+          "object_key",
+          "content_type",
+          "byte_size",
+          "width",
+          "height",
+          "duration_seconds",
+          "checksum_sha256",
+          "created_at"
+        ],
+        "title": "AssetResponse"
+      },
+      "Body_upload_asset_records__record_id__assets_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_asset_records__record_id__assets_post"
+      },
+      "EmbeddingBuildResponse": {
+        "properties": {
+          "embedding": {
+            "$ref": "#/components/schemas/EmbeddingResponse"
+          },
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/RelationResponse"
+            },
+            "type": "array",
+            "title": "Relations"
+          },
+          "timeline_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineCandidateResponse"
+            },
+            "type": "array",
+            "title": "Timeline Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "embedding",
+          "relations",
+          "timeline_candidates"
+        ],
+        "title": "EmbeddingBuildResponse"
+      },
+      "EmbeddingResponse": {
+        "properties": {
+          "embedding_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Embedding Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "dimension": {
+            "type": "integer",
+            "title": "Dimension"
+          },
+          "input_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Snapshot"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "embedding_id",
+          "record_id",
+          "provider",
+          "model",
+          "dimension",
+          "input_snapshot",
+          "created_at"
+        ],
+        "title": "EmbeddingResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "JobClaimResponse": {
+        "properties": {
+          "job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lock_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job",
+          "lock_token"
+        ],
+        "title": "JobClaimResponse"
+      },
+      "JobFailureRequest": {
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Error Code"
+          },
+          "error_message": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Error Message"
+          },
+          "lock_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_code",
+          "error_message"
+        ],
+        "title": "JobFailureRequest"
+      },
+      "JobListResponse": {
+        "properties": {
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobResponse"
+            },
+            "type": "array",
+            "title": "Jobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jobs"
+        ],
+        "title": "JobListResponse"
+      },
+      "JobLockRequest": {
+        "properties": {
+          "lock_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock Token"
+          }
+        },
+        "type": "object",
+        "title": "JobLockRequest"
+      },
+      "JobResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "job_type": {
+            "type": "string",
+            "title": "Job Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "cached_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Status"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "last_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error Code"
+          },
+          "last_error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error Message"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "record_id",
+          "job_type",
+          "status",
+          "attempt_count",
+          "last_error_code",
+          "last_error_message",
+          "available_at",
+          "started_at",
+          "finished_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobResponse"
+      },
+      "RecordCreate": {
+        "properties": {
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          },
+          "emotion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emotion"
+          },
+          "satisfaction_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfaction Score"
+          },
+          "happened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Happened At"
+          }
+        },
+        "type": "object",
+        "title": "RecordCreate"
+      },
+      "RecordListResponse": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/RecordResponse"
+            },
+            "type": "array",
+            "title": "Records"
+          }
+        },
+        "type": "object",
+        "required": [
+          "records"
+        ],
+        "title": "RecordListResponse"
+      },
+      "RecordResponse": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          },
+          "emotion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emotion"
+          },
+          "satisfaction_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfaction Score"
+          },
+          "happened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Happened At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "user_id",
+          "memo",
+          "emotion",
+          "satisfaction_score",
+          "happened_at",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RecordResponse"
+      },
+      "RecordUpdate": {
+        "properties": {
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          },
+          "emotion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emotion"
+          },
+          "satisfaction_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfaction Score"
+          },
+          "happened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Happened At"
+          }
+        },
+        "type": "object",
+        "title": "RecordUpdate"
+      },
+      "RelationListResponse": {
+        "properties": {
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/RelationResponse"
+            },
+            "type": "array",
+            "title": "Relations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "relations"
+        ],
+        "title": "RelationListResponse"
+      },
+      "RelationResponse": {
+        "properties": {
+          "relation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Relation Id"
+          },
+          "source_record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Record Id"
+          },
+          "target_record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Record Id"
+          },
+          "relation_type": {
+            "type": "string",
+            "title": "Relation Type"
+          },
+          "similarity_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similarity Score"
+          },
+          "decision_status": {
+            "type": "string",
+            "title": "Decision Status"
+          },
+          "reasons": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasons"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "relation_id",
+          "source_record_id",
+          "target_record_id",
+          "relation_type",
+          "similarity_score",
+          "decision_status",
+          "reasons",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RelationResponse"
+      },
+      "SceneAnalysisResponse": {
+        "properties": {
+          "interpretation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Interpretation Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "scene_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scene Type"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "ocr_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Candidates"
+          },
+          "place_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Candidates"
+          },
+          "visit_time_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Time Candidates"
+          },
+          "menu_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Candidates"
+          },
+          "activity_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Candidates"
+          },
+          "amount_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Candidates"
+          },
+          "similar_record_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similar Record Candidates"
+          },
+          "revisit_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revisit Candidates"
+          },
+          "timeline_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeline Candidates"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "user_corrections": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Corrections"
+          },
+          "raw_response_ref": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Response Ref"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "interpretation_id",
+          "record_id",
+          "provider",
+          "model",
+          "scene_type",
+          "summary",
+          "ocr_candidates",
+          "place_candidates",
+          "visit_time_candidates",
+          "menu_candidates",
+          "activity_candidates",
+          "amount_candidates",
+          "similar_record_candidates",
+          "revisit_candidates",
+          "timeline_candidates",
+          "tags",
+          "user_corrections",
+          "raw_response_ref",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SceneAnalysisResponse"
+      },
+      "StorageExportData": {
+        "properties": {
+          "app_users": {
+            "$ref": "#/components/schemas/StoredUser"
+          },
+          "records": {
+            "$ref": "#/components/schemas/StoredRecord"
+          },
+          "record_assets": {
+            "items": {
+              "$ref": "#/components/schemas/StoredAsset"
+            },
+            "type": "array",
+            "title": "Record Assets"
+          },
+          "record_ai_interpretations": {
+            "items": {
+              "$ref": "#/components/schemas/StoredAIInterpretation"
+            },
+            "type": "array",
+            "title": "Record Ai Interpretations"
+          },
+          "record_embeddings": {
+            "items": {
+              "$ref": "#/components/schemas/StoredEmbedding"
+            },
+            "type": "array",
+            "title": "Record Embeddings"
+          },
+          "record_relations": {
+            "items": {
+              "$ref": "#/components/schemas/StoredRelation"
+            },
+            "type": "array",
+            "title": "Record Relations"
+          },
+          "timeline_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/StoredTimelineCandidate"
+            },
+            "type": "array",
+            "title": "Timeline Candidates"
+          },
+          "processing_jobs": {
+            "items": {
+              "$ref": "#/components/schemas/StoredProcessingJob"
+            },
+            "type": "array",
+            "title": "Processing Jobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "app_users",
+          "records",
+          "record_assets",
+          "record_ai_interpretations",
+          "record_embeddings",
+          "record_relations",
+          "timeline_candidates",
+          "processing_jobs"
+        ],
+        "title": "StorageExportData"
+      },
+      "StorageExportResponse": {
+        "properties": {
+          "field_contract": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Field Contract"
+          },
+          "data": {
+            "$ref": "#/components/schemas/StorageExportData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field_contract",
+          "data"
+        ],
+        "title": "StorageExportResponse"
+      },
+      "StoredAIInterpretation": {
+        "properties": {
+          "interpretation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Interpretation Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "scene_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scene Type"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "ocr_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Candidates"
+          },
+          "place_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Candidates"
+          },
+          "visit_time_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Time Candidates"
+          },
+          "menu_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menu Candidates"
+          },
+          "activity_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Candidates"
+          },
+          "amount_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Candidates"
+          },
+          "similar_record_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similar Record Candidates"
+          },
+          "revisit_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revisit Candidates"
+          },
+          "timeline_candidates": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeline Candidates"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "user_corrections": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Corrections"
+          },
+          "raw_response_ref": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Response Ref"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "interpretation_id",
+          "record_id",
+          "provider",
+          "model",
+          "scene_type",
+          "summary",
+          "ocr_candidates",
+          "place_candidates",
+          "visit_time_candidates",
+          "menu_candidates",
+          "activity_candidates",
+          "amount_candidates",
+          "similar_record_candidates",
+          "revisit_candidates",
+          "timeline_candidates",
+          "tags",
+          "user_corrections",
+          "raw_response_ref",
+          "status",
+          "created_at",
+          "updated_at",
+          "deleted_at"
+        ],
+        "title": "StoredAIInterpretation"
+      },
+      "StoredAsset": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "asset_type": {
+            "type": "string",
+            "title": "Asset Type"
+          },
+          "storage_provider": {
+            "type": "string",
+            "title": "Storage Provider"
+          },
+          "bucket_name": {
+            "type": "string",
+            "title": "Bucket Name"
+          },
+          "object_key": {
+            "type": "string",
+            "title": "Object Key"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "byte_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byte Size"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "checksum_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum Sha256"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id",
+          "record_id",
+          "asset_type",
+          "storage_provider",
+          "bucket_name",
+          "object_key",
+          "content_type",
+          "byte_size",
+          "width",
+          "height",
+          "duration_seconds",
+          "checksum_sha256",
+          "created_at",
+          "deleted_at"
+        ],
+        "title": "StoredAsset"
+      },
+      "StoredEmbedding": {
+        "properties": {
+          "embedding_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Embedding Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "dimension": {
+            "type": "integer",
+            "title": "Dimension"
+          },
+          "embedding": {
+            "type": "string",
+            "title": "Embedding"
+          },
+          "input_snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Snapshot"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "embedding_id",
+          "record_id",
+          "provider",
+          "model",
+          "dimension",
+          "embedding",
+          "input_snapshot",
+          "created_at",
+          "deleted_at"
+        ],
+        "title": "StoredEmbedding"
+      },
+      "StoredProcessingJob": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "job_type": {
+            "type": "string",
+            "title": "Job Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "last_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error Code"
+          },
+          "last_error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error Message"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "record_id",
+          "job_type",
+          "status",
+          "attempt_count",
+          "last_error_code",
+          "last_error_message",
+          "available_at",
+          "started_at",
+          "finished_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StoredProcessingJob"
+      },
+      "StoredRecord": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          },
+          "emotion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emotion"
+          },
+          "satisfaction_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfaction Score"
+          },
+          "happened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Happened At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "user_id",
+          "memo",
+          "emotion",
+          "satisfaction_score",
+          "happened_at",
+          "status",
+          "created_at",
+          "updated_at",
+          "deleted_at"
+        ],
+        "title": "StoredRecord"
+      },
+      "StoredRelation": {
+        "properties": {
+          "relation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Relation Id"
+          },
+          "source_record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Record Id"
+          },
+          "target_record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Record Id"
+          },
+          "relation_type": {
+            "type": "string",
+            "title": "Relation Type"
+          },
+          "similarity_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similarity Score"
+          },
+          "decision_status": {
+            "type": "string",
+            "title": "Decision Status"
+          },
+          "reasons": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasons"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "relation_id",
+          "source_record_id",
+          "target_record_id",
+          "relation_type",
+          "similarity_score",
+          "decision_status",
+          "reasons",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "StoredRelation"
+      },
+      "StoredTimelineCandidate": {
+        "properties": {
+          "timeline_candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Timeline Candidate Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "timeline_type": {
+            "type": "string",
+            "title": "Timeline Type"
+          },
+          "grouping_key": {
+            "type": "string",
+            "title": "Grouping Key"
+          },
+          "confidence_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Score"
+          },
+          "reasons": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasons"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timeline_candidate_id",
+          "user_id",
+          "record_id",
+          "timeline_type",
+          "grouping_key",
+          "confidence_score",
+          "reasons",
+          "created_at"
+        ],
+        "title": "StoredTimelineCandidate"
+      },
+      "StoredUser": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "auth_provider": {
+            "type": "string",
+            "title": "Auth Provider"
+          },
+          "auth_subject": {
+            "type": "string",
+            "title": "Auth Subject"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "auth_provider",
+          "auth_subject",
+          "email",
+          "display_name",
+          "created_at",
+          "updated_at",
+          "deleted_at"
+        ],
+        "title": "StoredUser"
+      },
+      "TimelineCandidateListResponse": {
+        "properties": {
+          "timeline_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineCandidateResponse"
+            },
+            "type": "array",
+            "title": "Timeline Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timeline_candidates"
+        ],
+        "title": "TimelineCandidateListResponse"
+      },
+      "TimelineCandidateResponse": {
+        "properties": {
+          "timeline_candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Timeline Candidate Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "timeline_type": {
+            "type": "string",
+            "title": "Timeline Type"
+          },
+          "grouping_key": {
+            "type": "string",
+            "title": "Grouping Key"
+          },
+          "confidence_score": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence Score"
+          },
+          "reasons": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasons"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timeline_candidate_id",
+          "user_id",
+          "record_id",
+          "timeline_type",
+          "grouping_key",
+          "confidence_score",
+          "reasons",
+          "created_at"
+        ],
+        "title": "TimelineCandidateResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000",
+      "description": "Local FastAPI server"
+    },
+    {
+      "url": "http://localhost:8000",
+      "description": "Localhost alias"
+    }
+  ]
+}

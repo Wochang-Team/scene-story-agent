@@ -64,6 +64,10 @@ def test_health_and_upload_page(client):
     assert live.status_code == 200
     assert live.json() == {"status": "ok"}
 
+    traced = client.get("/health/live", headers={"X-Request-ID": "pytest-request-id"})
+    assert traced.status_code == 200
+    assert traced.headers["X-Request-ID"] == "pytest-request-id"
+
     ready = client.get("/health/ready")
     assert ready.status_code == 200
     assert ready.json()["dependencies"] == {"postgres": "ok", "redis": "ok"}
@@ -77,6 +81,36 @@ def test_health_and_upload_page(client):
     assert "/ai-analysis" in page.text
     assert "/embedding" in page.text
     assert "/storage-json" in page.text
+
+
+def test_path_validation_error_logs_actionable_context(client, monkeypatch):
+    import app.main as main_module
+
+    events = []
+
+    def capture_log_event(event, **fields):
+        events.append({"event": event, **fields})
+
+    monkeypatch.setattr(main_module, "log_event", capture_log_event)
+
+    response = client.get("/jobs/1", headers=auth("pytest-flow"))
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["path", "job_id"]
+
+    validation_events = [
+        event for event in events if event["event"] == "request.validation_failed"
+    ]
+    client_error_events = [
+        event for event in events if event["event"] == "request.client_error"
+    ]
+    assert validation_events
+    assert client_error_events
+    assert client_error_events[0]["status_code"] == 422
+    validation_error = validation_events[0]["errors"][0]
+    assert validation_error["type"] == "uuid_parsing"
+    assert validation_error["loc"] == ["path", "job_id"]
+    assert validation_error["input"] == "1"
 
 
 def test_record_file_job_ai_embedding_and_delete_flow(client):
