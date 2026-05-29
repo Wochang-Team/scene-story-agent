@@ -25,6 +25,7 @@ from app.services import ai_pipeline
 from app.services import deletion as deletion_service
 from app.services import embedding_pipeline
 from app.services import jobs as job_service
+from app.services import thumbnails as thumbnail_service
 from app.services.storage import LocalStorage
 from app.settings import Settings, get_settings
 from app.providers.http import ProviderHttpError
@@ -206,6 +207,13 @@ def analyze_record_scene(
             detail=str(exc),
         ) from exc
 
+    thumbnails = thumbnail_service.generate_record_thumbnails(
+        connection=connection,
+        settings=settings,
+        user_id=user_id,
+        record_id=record_id,
+    )
+
     connection.commit()
     log_event(
         "ai.analysis.completed",
@@ -220,6 +228,7 @@ def analyze_record_scene(
         activity_candidate_count=len(interpretation["activity_candidates"] or []),
         amount_candidate_count=len(interpretation["amount_candidates"] or []),
         tag_count=len(interpretation["tags"] or []),
+        thumbnail_count=len(thumbnails),
     )
     return interpretation
 

@@ -16,7 +16,8 @@ MVP 개발은 로컬에서 먼저 완성한다.
 - 실행 기준:
   - Docker Compose로 PostgreSQL과 Redis를 실행한다.
   - API 서버는 로컬 Python 환경에서 실행한다.
-  - AI Provider는 Mock 구현으로 먼저 연결한다.
+  - 기본 API 테스트는 Mock Provider로 고정한다.
+  - 실제 AI/Embedding 연결은 `.env.local`의 Provider 설정으로 검증한다.
 - 제외 기준:
   - 클라우드 배포
   - 관리형 DB
@@ -127,12 +128,13 @@ AI Provider는 Mock 구현으로 먼저 데이터 흐름을 닫는다.
 - [x] 요약 저장
 - [x] 사용자 수정값 저장 기준 정의
 
-## 7. Mock 임베딩과 연결
+## 7. 임베딩과 연결
 
 벡터 검색 결과는 확정이 아니라 후보로 저장한다.
 
 - [x] Embedding Provider 인터페이스 정의
 - [x] Mock embedding 구현
+- [x] Gemini embedding 구현
 - [x] 실제 AI API key와 model 설정 경계 추가
 - [x] 임베딩 입력 snapshot 저장
 - [x] pgvector 컬럼 저장 확인
@@ -177,6 +179,8 @@ AI Provider는 Mock 구현으로 먼저 데이터 흐름을 닫는다.
 - [x] 유사 기록 검색 테스트
 - [x] 삭제 흐름 테스트
 - [x] OpenAI/Gemini Provider payload 테스트
+- [x] Gemini AI 실호출 테스트
+- [x] Gemini embedding 실호출 테스트
 - [x] DB 설계 전체 항목 샘플 JSON 테스트
 - [x] AI 해석 후보 전체 항목 테스트
 - [x] 요청 `request_id` 응답 헤더 테스트
@@ -223,6 +227,7 @@ MVP 로컬 개발은 아래 조건을 만족하면 완료로 본다.
 - [x] 기록 생성 후 `processing_jobs`가 등록된다.
 - [x] Mock AI 결과가 DB에 저장된다.
 - [x] Mock embedding 결과가 pgvector 컬럼에 저장된다.
+- [x] Gemini AI와 embedding이 실제 API key로 호출된다.
 - [x] 유사 기록 후보가 생성된다.
 - [x] 기록 삭제 시 관련 데이터가 조회에서 제외된다.
 - [x] 정상/실패 흐름 로그가 남는다.
@@ -236,12 +241,13 @@ MVP 로컬 개발은 아래 조건을 만족하면 완료로 본다.
 - [ ] 운영 PostgreSQL 백업 기준 확정
 - [ ] 운영 Redis 관리 기준 확정
 - [ ] 외부 Object Storage 사용 여부 결정
-- [ ] 실제 OpenAI 또는 Gemini Provider 연결
+- [x] 실제 Gemini Provider 연결
+- [ ] 실제 OpenAI embedding Provider 연결
 - [ ] AI API 비용 알림 기준 확정
 - [ ] 운영 로그 확인 방식 확정
 - [ ] 배포 절차 작성
 
 ## 이력관리
 
-- 2026-05-28: 로컬 로그 체크리스트 추가
+- 2026-05-28: 로컬 로그 체크리스트 추가, Gemini embedding 구현 및 실호출 테스트 항목 반영
 - 2026-05-27: 로컬 환경 기준 MVP 개발 체크리스트 작성

@@ -7,6 +7,7 @@ from PIL import Image, UnidentifiedImageError
 from app.schemas.ai import ImageForAnalysis
 
 MAX_IMAGE_SIDE = 1024
+THUMBNAIL_SIZE = 512
 OUTPUT_FORMAT_BY_CONTENT_TYPE = {
     "image/jpeg": ("JPEG", "image/jpeg"),
     "image/png": ("PNG", "image/png"),
@@ -49,3 +50,21 @@ def resize_and_strip_metadata(path: Path, content_type: str) -> bytes:
             return buffer.getvalue()
     except (OSError, UnidentifiedImageError) as exc:
         raise ValueError("Uploaded image cannot be decoded for AI analysis.") from exc
+
+
+def create_square_thumbnail(path: Path, size: int = THUMBNAIL_SIZE) -> bytes:
+    try:
+        with Image.open(path) as image:
+            image = image.convert("RGB")
+            width, height = image.size
+            edge = min(width, height)
+            left = (width - edge) // 2
+            top = (height - edge) // 2
+            image = image.crop((left, top, left + edge, top + edge))
+            image = image.resize((size, size), Image.Resampling.LANCZOS)
+
+            buffer = BytesIO()
+            image.save(buffer, format="WEBP", quality=82, optimize=True)
+            return buffer.getvalue()
+    except (OSError, UnidentifiedImageError) as exc:
+        raise ValueError("Uploaded image cannot be decoded for thumbnail generation.") from exc

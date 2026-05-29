@@ -5,6 +5,7 @@ from uuid import UUID
 from psycopg import Connection
 
 from app.providers.embeddings import get_embedding_provider
+from app.repositories import ai_interpretations as interpretation_repository
 from app.repositories import assets as asset_repository
 from app.repositories import embeddings as embedding_repository
 from app.repositories import relations as relation_repository
@@ -12,7 +13,11 @@ from app.repositories import timeline_candidates as timeline_repository
 from app.settings import Settings
 
 
-def build_input_snapshot(record: dict[str, Any], assets: list[dict[str, Any]]) -> dict[str, Any]:
+def build_input_snapshot(
+    record: dict[str, Any],
+    assets: list[dict[str, Any]],
+    interpretation: dict[str, Any] | None,
+) -> dict[str, Any]:
     return {
         "record_id": str(record["record_id"]),
         "memo": record["memo"],
@@ -22,6 +27,7 @@ def build_input_snapshot(record: dict[str, Any], assets: list[dict[str, Any]]) -
         "asset_count": len(assets),
         "asset_types": sorted({asset["asset_type"] for asset in assets}),
         "content_types": sorted({asset["content_type"] for asset in assets}),
+        "ai_interpretation": build_interpretation_snapshot(interpretation),
     }
 
 
@@ -33,8 +39,43 @@ def snapshot_to_text(snapshot: dict[str, Any]) -> str:
         snapshot.get("happened_at") or "",
         " ".join(snapshot.get("asset_types") or []),
         " ".join(snapshot.get("content_types") or []),
+        flatten_for_embedding(snapshot.get("ai_interpretation")),
     ]
     return " | ".join(part for part in parts if part)
+
+
+def build_interpretation_snapshot(interpretation: dict[str, Any] | None) -> dict[str, Any] | None:
+    if interpretation is None:
+        return None
+
+    return {
+        "scene_type": interpretation["scene_type"],
+        "summary": interpretation["summary"],
+        "ocr_candidates": interpretation["ocr_candidates"],
+        "place_candidates": interpretation["place_candidates"],
+        "visit_time_candidates": interpretation["visit_time_candidates"],
+        "menu_candidates": interpretation["menu_candidates"],
+        "activity_candidates": interpretation["activity_candidates"],
+        "amount_candidates": interpretation["amount_candidates"],
+        "similar_record_candidates": interpretation["similar_record_candidates"],
+        "revisit_candidates": interpretation["revisit_candidates"],
+        "timeline_candidates": interpretation["timeline_candidates"],
+        "tags": interpretation["tags"],
+    }
+
+
+def flatten_for_embedding(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, dict):
+        return " ".join(
+            flatten_for_embedding(item)
+            for item in value.values()
+            if item is not None
+        )
+    if isinstance(value, list):
+        return " ".join(flatten_for_embedding(item) for item in value)
+    return str(value)
 
 
 def build_embedding_and_candidates(
@@ -45,7 +86,11 @@ def build_embedding_and_candidates(
 ) -> dict[str, Any]:
     provider = get_embedding_provider(settings)
     assets = asset_repository.list_assets(connection, record["record_id"])
-    snapshot = build_input_snapshot(record, assets)
+    interpretation = interpretation_repository.get_latest_interpretation(
+        connection=connection,
+        record_id=record["record_id"],
+    )
+    snapshot = build_input_snapshot(record, assets, interpretation)
     vector = provider.embed(snapshot_to_text(snapshot))
 
     embedding = embedding_repository.create_embedding(
@@ -76,9 +121,10 @@ def build_embedding_and_candidates(
             relation_type="similar_scene",
             similarity_score=candidate["similarity_score"],
             reasons={
-                "source": "mock_embedding",
+                "source": "embedding",
                 "provider": provider.provider,
                 "model": provider.model,
+                "dimension": provider.dimension,
             },
         )
         relations.append(relation)
@@ -92,7 +138,10 @@ def build_embedding_and_candidates(
                     relation_type="revisit_candidate",
                     similarity_score=candidate["similarity_score"],
                     reasons={
-                        "source": "mock_embedding",
+                        "source": "embedding",
+                        "provider": provider.provider,
+                        "model": provider.model,
+                        "dimension": provider.dimension,
                         "threshold": settings.similarity_threshold,
                     },
                 )
@@ -156,7 +205,7 @@ def build_timeline_candidates(
                 timeline_type="scene_type",
                 grouping_key="similar_scene",
                 confidence_score=0.60,
-                reasons={"source": "mock_embedding_relations"},
+                reasons={"source": "embedding_relations"},
             )
         )
 

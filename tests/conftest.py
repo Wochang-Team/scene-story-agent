@@ -9,7 +9,7 @@ from psycopg.rows import dict_row
 from redis import Redis
 
 from app.main import app
-from app.settings import get_settings
+from app.settings import Settings, get_settings
 
 TEST_USER_PREFIX = "pytest-"
 
@@ -17,9 +17,27 @@ TEST_USER_PREFIX = "pytest-"
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     cleanup_test_state()
-    with TestClient(app) as test_client:
-        yield test_client
-    cleanup_test_state()
+    app.dependency_overrides[get_settings] = mock_provider_settings
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+        cleanup_test_state()
+
+
+def mock_provider_settings() -> Settings:
+    settings = get_settings()
+    return Settings(
+        **{
+            **settings.model_dump(),
+            "ai_provider": "mock",
+            "ai_model": "mock-scene-v1",
+            "embedding_provider": "mock",
+            "embedding_model": "mock-embedding-v1",
+            "embedding_dimension": 8,
+        }
+    )
 
 
 def cleanup_test_state() -> None:

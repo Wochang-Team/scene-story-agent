@@ -24,15 +24,15 @@ def normalize_scene_result(
         model=model,
         scene_type=payload.get("scene_type"),
         summary=payload.get("summary"),
-        ocr_candidates=ensure_list(payload.get("ocr_candidates")),
-        place_candidates=ensure_list(payload.get("place_candidates")),
-        visit_time_candidates=ensure_list(payload.get("visit_time_candidates")),
-        menu_candidates=ensure_list(payload.get("menu_candidates")),
-        activity_candidates=ensure_list(payload.get("activity_candidates")),
-        amount_candidates=ensure_list(payload.get("amount_candidates")),
-        similar_record_candidates=ensure_list(payload.get("similar_record_candidates")),
-        revisit_candidates=ensure_list(payload.get("revisit_candidates")),
-        timeline_candidates=ensure_list(payload.get("timeline_candidates")),
+        ocr_candidates=ensure_dict_list(payload.get("ocr_candidates")),
+        place_candidates=ensure_dict_list(payload.get("place_candidates")),
+        visit_time_candidates=ensure_dict_list(payload.get("visit_time_candidates")),
+        menu_candidates=ensure_dict_list(payload.get("menu_candidates")),
+        activity_candidates=ensure_dict_list(payload.get("activity_candidates")),
+        amount_candidates=ensure_dict_list(payload.get("amount_candidates")),
+        similar_record_candidates=ensure_dict_list(payload.get("similar_record_candidates")),
+        revisit_candidates=ensure_dict_list(payload.get("revisit_candidates")),
+        timeline_candidates=ensure_dict_list(payload.get("timeline_candidates")),
         tags=[str(tag) for tag in ensure_list(payload.get("tags"))],
         raw_response_ref=raw_response_ref,
     )
@@ -46,6 +46,17 @@ def ensure_list(value: Any) -> list:
     return [value]
 
 
+def ensure_dict_list(value: Any) -> list[dict[str, Any]]:
+    items = ensure_list(value)
+    result = []
+    for item in items:
+        if isinstance(item, dict):
+            result.append(item)
+        else:
+            result.append({"value": item})
+    return result
+
+
 def scene_analysis_prompt(analysis_input: SceneAnalysisInput) -> str:
     return (
         "Analyze this personal scene record. Return only JSON with keys: "
@@ -53,7 +64,10 @@ def scene_analysis_prompt(analysis_input: SceneAnalysisInput) -> str:
         "visit_time_candidates, menu_candidates, activity_candidates, "
         "amount_candidates, similar_record_candidates, revisit_candidates, "
         "timeline_candidates, tags. "
-        "Use arrays for candidate fields. Do not include sensitive raw image data. "
+        "Use arrays of objects for candidate fields. Do not include sensitive raw image data. "
+        "Write summary in Korean. "
+        "If multiple images are provided, infer each image role automatically, such as storefront/sign, menu board, food, receipt, or table scene. "
+        "Use all images together to extract place, visit time, menu, activity, amount, scene type, tags, revisit clues, and timeline clues. "
         f"Record memo: {analysis_input.memo or ''}. "
         f"Emotion: {analysis_input.emotion or ''}. "
         f"Satisfaction score: {analysis_input.satisfaction_score or ''}. "

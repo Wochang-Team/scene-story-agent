@@ -74,7 +74,103 @@ def test_health_and_upload_page(client):
 
     page = client.get("/ui/upload")
     assert page.status_code == 200
-    assert "로컬 기록 업로드" in page.text
+    assert "로컬 MVP 화면 그리드" in page.text
+    assert "사용자 화면" in page.text
+    assert "처리 데이터 확인 화면" in page.text
+    assert "user-flow-grid" in page.text
+    assert "user-flow-primary" in page.text
+    assert "user-flow-secondary" in page.text
+    assert "ops-grid" in page.text
+    assert "업로드 화면" in page.text
+    assert ">목록<" in page.text
+    assert ">상세<" in page.text
+    assert "내 기록 목록 화면" not in page.text
+    assert "선택 기록 상세 화면" not in page.text
+    assert "AI 해석 화면" in page.text
+    assert "유사 기록/재방문 화면" in page.text
+    assert "타임라인 후보 화면" in page.text
+    assert "저장 JSON 화면" in page.text
+    assert "임베딩 검색 결과" in page.text
+    assert "status-board" in page.text
+    assert "원본 기록" in page.text
+    assert "사진 업로드" in page.text
+    assert "AI 해석" in page.text
+    assert "similar-results" in page.text
+    assert "timeline-results" in page.text
+    assert "fetchRelatedRecords" in page.text
+    assert "record-memo" in page.text
+    assert "record-tags" in page.text
+    assert "record-headline" in page.text
+    assert "record-datetime" in page.text
+    assert "record-thumbnail" not in page.text
+    assert "detail-thumbnail" not in page.text
+    assert "related-record-thumbnail" not in page.text
+    assert "record-delete" in page.text
+    assert "detail-hero" in page.text
+    assert "detail-headline" not in page.text
+    assert "detail-datetime" not in page.text
+    assert "detail-section" in page.text
+    assert "renderDetailHero" in page.text
+    assert "recordDateTimeValue" in page.text
+    assert "compactDateTime" in page.text
+    assert "detailDateTime" in page.text
+    assert "async function fetchRelatedRecords(relations, limit = 3)" in page.text
+    assert "relatedRecordItems" in page.text
+    assert "detailRelatedRecords" in page.text
+    assert "related-record-button" in page.text
+    assert "section.appendChild(heading)" not in page.text
+    assert "연관 기록" in page.text
+    assert "유사 ${similarCount}건 · 재방문 ${revisitCount}건 · 타임라인 ${timelineCandidates.length}건" not in page.text
+    assert "AI 해석 요약" not in page.text
+    assert "연결 요약" not in page.text
+    assert "대표 연결" not in page.text
+    assert "타임라인 그룹" not in page.text
+    assert "유사도" not in page.text
+    assert "decision_status" not in page.text
+    assert '{label: "장소"' not in page.text
+    assert '{label: "방문"' not in page.text
+    assert '{label: "장면"' not in page.text
+    assert '{label: "활동"' not in page.text
+    assert "메모" in page.text
+    assert "장소" in page.text
+    assert "메뉴" in page.text
+    assert "활동" in page.text
+    assert "방문 시간" in page.text
+    assert "유사 기록" in page.text
+    assert "유사한 기록" in page.text
+    assert "다시 방문한 기록" in page.text
+    assert "requestNoContent" in page.text
+    assert 'method: "DELETE"' in page.text
+    assert "이 기록을 삭제할까요?" in page.text
+    assert "recordListTitle" in page.text
+    assert "recordListSubtitle" in page.text
+    assert "recordListTags" in page.text
+    assert "menuNameText" in page.text
+    assert "stripMenuMeta" in page.text
+    assert "menuDetailText" in page.text
+    assert '{label: "메뉴", value: menuDetailText(analysis)}' in page.text
+    assert '{label: "금액"' not in page.text
+    assert "candidateField" in page.text
+    assert "bestCandidate" in page.text
+    assert "candidateScore" in page.text
+    assert "emotionIcon" in page.text
+    assert "activity_candidates" in page.text
+    assert "menu_candidates" in page.text
+    assert "satisfaction_score}점" in page.text
+    assert "AI 완료" not in page.text
+    assert "AI 대기" not in page.text
+    assert "local-mvp" in page.text
+    assert "방문 사진" in page.text
+    assert 'id="files"' in page.text
+    assert 'id="primary-picker"' in page.text
+    assert "대표사진 선택" in page.text
+    assert "primary-preview-button" in page.text
+    assert "selectedPrimaryFileIndex" in page.text
+    assert "renderPrimaryPicker" in page.text
+    assert "orderedUploadFiles" in page.text
+    assert "URL.createObjectURL" in page.text
+    assert "multiple required" in page.text
+    assert "files.length" in page.text
     assert "😊" in page.text
     assert "satisfaction-5" in page.text
     assert "/records" in page.text
@@ -177,6 +273,7 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     second_embedding = client.post(f"/records/{second['record_id']}/embedding", headers=auth(user))
     assert second_embedding.status_code == 200, second_embedding.text
     assert second_embedding.json()["embedding"]["provider"] == "mock"
+    assert second_embedding.json()["embedding"]["input_snapshot"]["ai_interpretation"]["summary"]
     assert second_embedding.json()["relations"]
     assert second_embedding.json()["timeline_candidates"]
 
@@ -194,6 +291,16 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     final_ai = final_storage_payload["data"]["record_ai_interpretations"][0]
     for candidate_key in AI_CANDIDATE_KEYS:
         assert candidate_key in final_ai
+    final_assets = final_storage_payload["data"]["record_assets"]
+    assert {asset["asset_type"] for asset in final_assets} == {"photo", "thumbnail"}
+    thumbnail = next(asset for asset in final_assets if asset["asset_type"] == "thumbnail")
+    assert thumbnail["content_type"] == "image/webp"
+    thumbnail_file = client.get(
+        f"/records/{second['record_id']}/assets/{thumbnail['asset_id']}/file",
+        headers=auth(user),
+    )
+    assert thumbnail_file.status_code == 200
+    assert thumbnail_file.headers["content-type"] == "image/webp"
 
     relations = client.get(f"/records/{second['record_id']}/relations", headers=auth(user))
     assert relations.status_code == 200
@@ -227,9 +334,11 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
     from uuid import uuid4
 
     from app.providers.gemini_provider import GeminiSceneAnalysisProvider
+    from app.providers.embeddings import GeminiEmbeddingProvider
     from app.providers.openai_provider import OpenAISceneAnalysisProvider
     from app.schemas.ai import ImageForAnalysis, SceneAnalysisInput
     from app.settings import Settings
+    import app.providers.embeddings as embedding_module
     import app.providers.gemini_provider as gemini_module
     import app.providers.openai_provider as openai_module
 
@@ -254,7 +363,7 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
                     "scene_type": "cafe",
                     "summary": "ok",
                     "ocr_candidates": [],
-                    "place_candidates": [],
+                    "place_candidates": ["cafe"],
                     "visit_time_candidates": [],
                     "menu_candidates": [],
                     "activity_candidates": [],
@@ -281,11 +390,14 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
     openai_result = openai_provider.analyze(analysis_input)
     assert openai_result.provider == "openai"
     assert openai_result.scene_type == "cafe"
+    assert openai_result.place_candidates == [{"value": "cafe"}]
     assert AI_CANDIDATE_KEYS.issubset(openai_result.model_dump())
     assert openai_calls[0]["url"] == "https://api.openai.com/v1/responses"
     assert openai_calls[0]["payload"]["model"] == "gpt-test"
     assert openai_calls[0]["headers"]["Authorization"] == "Bearer test-key"
     openai_prompt = openai_calls[0]["payload"]["input"][0]["content"][0]["text"]
+    assert "Write summary in Korean." in openai_prompt
+    assert "infer each image role automatically" in openai_prompt
     for candidate_key in AI_CANDIDATE_KEYS:
         assert candidate_key in openai_prompt
 
@@ -304,7 +416,7 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
                                         "scene_type": "gallery",
                                         "summary": "ok",
                                         "ocr_candidates": [],
-                                        "place_candidates": [],
+                                        "place_candidates": ["gallery"],
                                         "visit_time_candidates": [],
                                         "menu_candidates": [],
                                         "activity_candidates": [],
@@ -336,9 +448,37 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
     gemini_result = gemini_provider.analyze(analysis_input)
     assert gemini_result.provider == "gemini"
     assert gemini_result.scene_type == "gallery"
+    assert gemini_result.place_candidates == [{"value": "gallery"}]
     assert AI_CANDIDATE_KEYS.issubset(gemini_result.model_dump())
     assert "models/gemini-test:generateContent?key=test-key" in gemini_calls[0]["url"]
     assert gemini_calls[0]["payload"]["generationConfig"]["responseMimeType"] == "application/json"
     gemini_prompt = gemini_calls[0]["payload"]["contents"][0]["parts"][0]["text"]
+    assert "Write summary in Korean." in gemini_prompt
+    assert "infer each image role automatically" in gemini_prompt
     for candidate_key in AI_CANDIDATE_KEYS:
         assert candidate_key in gemini_prompt
+
+    embedding_calls = []
+
+    def fake_gemini_embedding_post_json(**kwargs):
+        embedding_calls.append(kwargs)
+        return {"embedding": {"values": [0.1, 0.2, 0.3]}}
+
+    monkeypatch.setattr(embedding_module, "post_json", fake_gemini_embedding_post_json)
+    embedding_provider = GeminiEmbeddingProvider(
+        Settings(
+            postgres_db="x",
+            postgres_user="x",
+            postgres_password="x",
+            embedding_provider="gemini",
+            embedding_model="gemini-embedding-test",
+            embedding_dimension=3,
+            gemini_api_key="test-key",
+        )
+    )
+    embedding_result = embedding_provider.embed("카페 라떼와 조용한 작업")
+    assert embedding_result == [0.1, 0.2, 0.3]
+    assert embedding_calls[0]["url"].endswith("/models/gemini-embedding-test:embedContent")
+    assert embedding_calls[0]["headers"]["x-goog-api-key"] == "test-key"
+    assert embedding_calls[0]["payload"]["content"]["parts"][0]["text"] == "카페 라떼와 조용한 작업"
+    assert embedding_calls[0]["payload"]["output_dimensionality"] == 3

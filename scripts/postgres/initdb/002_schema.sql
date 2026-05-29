@@ -47,7 +47,7 @@ create table if not exists record_assets (
     created_at timestamptz not null default now(),
     deleted_at timestamptz,
     unique (storage_provider, bucket_name, object_key),
-    check (asset_type in ('photo', 'video'))
+    check (asset_type in ('photo', 'video', 'thumbnail'))
 );
 
 create table if not exists record_ai_interpretations (

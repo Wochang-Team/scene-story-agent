@@ -21,6 +21,7 @@ def analyze_record(
     record: dict[str, Any],
 ) -> dict[str, Any]:
     assets = asset_repository.list_assets(connection, record["record_id"])
+    assets = [asset for asset in assets if asset["asset_type"] != "thumbnail"]
     storage = LocalStorage(settings)
     provider = get_scene_analysis_provider(settings)
 

@@ -187,8 +187,10 @@ curl http://127.0.0.1:8000/health/ready
   - `.env.local`의 Redis host, port 값을 확인한다.
   - Docker Compose `redis` healthcheck 상태를 확인한다.
 - AI Provider:
-  - 현재 구현 없음
-  - 도입 후 timeout, retry, rate limit, 응답 파싱 실패를 구분한다.
+  - OpenAI, Gemini, Mock AI Provider를 구분한다.
+  - Gemini, Mock Embedding Provider를 구분한다.
+  - timeout, retry, rate limit, 응답 파싱 실패를 구분한다.
+  - 실제 API key가 필요한 실호출 테스트는 `.env.local`의 Provider 설정을 따른다.
 - 개인정보:
   - 원본 파일 URL, OCR 원문, 프롬프트 원문이 로그에 남지 않았는지 확인한다.
   - 유출 가능성이 있으면 `docs/privacy-compliance.md` 기준으로 대응한다.
@@ -205,6 +207,7 @@ curl http://127.0.0.1:8000/health/ready
 - DB 마이그레이션 명령
 
 ## 이력관리
+- 2026-05-28: AI/Embedding Provider 구현 상태와 실호출 테스트 기준 반영
 - 2026-05-27: 운영 배포 방향을 자체 서버 기준으로 수정
 - 2026-05-23: `local`, `dev`, `prd` 실행 스크립트와 ENV 파일 기준 추가
 - 2026-05-23: 로컬 PostgreSQL 18.4 + pgvector, Redis 8.6 기준으로 갱신

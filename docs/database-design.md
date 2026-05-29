@@ -166,7 +166,7 @@ MVP 테이블은 기록 생성과 AI 처리 흐름을 우선한다.
 |---|---|---:|---|
 | `asset_id` | `uuid` | 예 | 파일 ID |
 | `record_id` | `uuid` | 예 | 소속 기록 |
-| `asset_type` | `text` | 예 | `photo`, `video` |
+| `asset_type` | `text` | 예 | `photo`, `video`, `thumbnail` |
 | `storage_provider` | `text` | 예 | `local`, `r2`, `s3` |
 | `bucket_name` | `text` | 예 | 버킷 이름 |
 | `object_key` | `text` | 예 | 저장소 객체 키 |
@@ -563,7 +563,7 @@ create table record_assets (
     created_at timestamptz not null default now(),
     deleted_at timestamptz,
     unique (storage_provider, bucket_name, object_key),
-    check (asset_type in ('photo', 'video'))
+    check (asset_type in ('photo', 'video', 'thumbnail'))
 );
 
 create table record_ai_interpretations (

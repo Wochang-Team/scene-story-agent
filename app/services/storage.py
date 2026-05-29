@@ -75,6 +75,34 @@ class LocalStorage:
             checksum_sha256=checksum.hexdigest(),
         )
 
+    def save_bytes(
+        self,
+        user_id: UUID,
+        record_id: UUID,
+        data: bytes,
+        *,
+        asset_type: str,
+        content_type: str,
+        suffix: str,
+    ) -> StoredFile:
+        object_key = f"users/{user_id}/records/{record_id}/assets/{uuid4()}{suffix}"
+        target_path = self.resolve_path(object_key)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            target_path.write_bytes(data)
+        except Exception:
+            target_path.unlink(missing_ok=True)
+            raise
+
+        return StoredFile(
+            asset_type=asset_type,
+            bucket_name=self.bucket_name,
+            object_key=object_key,
+            content_type=content_type,
+            byte_size=len(data),
+            checksum_sha256=sha256(data).hexdigest(),
+        )
+
     def resolve_path(self, object_key: str) -> Path:
         path = (self.root / object_key).resolve()
         root = self.root.resolve()
