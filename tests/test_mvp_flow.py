@@ -79,30 +79,65 @@ def test_health_and_upload_page(client):
     assert "처리 데이터 확인 화면" in page.text
     assert "user-flow-grid" in page.text
     assert "user-flow-primary" in page.text
-    assert "user-flow-secondary" in page.text
+    assert "user-flow-secondary" not in page.text
     assert "ops-grid" in page.text
     assert "업로드 화면" in page.text
     assert ">목록<" in page.text
     assert ">상세<" in page.text
     assert "내 기록 목록 화면" not in page.text
     assert "선택 기록 상세 화면" not in page.text
-    assert "AI 해석 화면" in page.text
-    assert "유사 기록/재방문 화면" in page.text
-    assert "타임라인 후보 화면" in page.text
-    assert "저장 JSON 화면" in page.text
-    assert "임베딩 검색 결과" in page.text
+    assert "AI 해석 화면" not in page.text
+    assert "유사 기록/재방문 화면" not in page.text
+    assert "타임라인 후보 화면" not in page.text
+    assert "저장 JSON 화면" not in page.text
+    assert "AI 해석 데이터" in page.text
+    assert "임베딩/연관 데이터" in page.text
+    assert "타임라인 후보 데이터" in page.text
+    assert "저장 JSON 데이터" in page.text
+    assert "임베딩 검색 결과" not in page.text
     assert "status-board" in page.text
-    assert "원본 기록" in page.text
-    assert "사진 업로드" in page.text
+    assert "원본 기록 저장" in page.text
+    assert "원본 파일 업로드" in page.text
     assert "AI 해석" in page.text
+    assert "썸네일 생성" in page.text
+    assert "임베딩 생성" in page.text
+    assert "연관 기록 생성" in page.text
+    assert "타임라인 후보 생성" in page.text
+    assert "저장 JSON 조회" in page.text
+    assert "사진 업로드" not in page.text
+    assert "summary-grid" not in page.text
+    assert "renderSummary" not in page.text
+    assert "renderDefaultSummary" not in page.text
     assert "similar-results" in page.text
     assert "timeline-results" in page.text
     assert "fetchRelatedRecords" in page.text
+    assert "appendUniquePill" in page.text
+    assert "embeddingModel" in page.text
+    assert "renderTimeline(timelinePayload.timeline_candidates, storageJson)" in page.text
+    assert "provider ${" not in page.text
+    assert "model ${" not in page.text
+    assert 'row("provider"' not in page.text
+    assert 'row("model"' not in page.text
     assert "record-memo" in page.text
     assert "record-tags" in page.text
     assert "record-headline" in page.text
     assert "record-datetime" in page.text
-    assert "record-thumbnail" not in page.text
+    assert "headline.appendChild(title)" in page.text
+    assert "copy.append(headline, memo, dateTime)" in page.text
+    assert "content.append(copy, tagRow)" in page.text
+    assert ".record-content > .record-tags" in page.text
+    assert "row-gap: 10px" in page.text
+    assert "column-gap: 10px" in page.text
+    assert "record-thumbnail" in page.text
+    assert "record-content" in page.text
+    assert "record-copy" in page.text
+    assert "representativeAsset" in page.text
+    assert "assetObjectUrl" in page.text
+    assert "loadRecordThumbnail" in page.text
+    assert "uploadAssetItems" in page.text
+    assert "openOriginalAsset" in page.text
+    assert "const thumbnails = assets.filter((asset) => asset.asset_type === \"thumbnail\")" in page.text
+    assert "caption.textContent = `원본 / ${Math.round((asset.byte_size || 0) / 1024)}KB`" in page.text
     assert "detail-thumbnail" not in page.text
     assert "related-record-thumbnail" not in page.text
     assert "record-delete" in page.text
@@ -115,6 +150,9 @@ def test_health_and_upload_page(client):
     assert "compactDateTime" in page.text
     assert "detailDateTime" in page.text
     assert "async function fetchRelatedRecords(relations, limit = 3)" in page.text
+    assert "groupedRelatedRelations" in page.text
+    assert "relationLabels" in page.text
+    assert "grouped.set(key, {relation, relations: [relation]})" in page.text
     assert "relatedRecordItems" in page.text
     assert "detailRelatedRecords" in page.text
     assert "related-record-button" in page.text
@@ -126,29 +164,75 @@ def test_health_and_upload_page(client):
     assert "대표 연결" not in page.text
     assert "타임라인 그룹" not in page.text
     assert "유사도" not in page.text
-    assert "decision_status" not in page.text
+    assert "decision_status" in page.text
+    assert "dataJson" in page.text
+    assert "numberText" in page.text
+    assert "dataItemTitle" in page.text
+    assert "dataHelpText" in page.text
+    assert "data-help" in page.text
+    assert "data-tooltip" in page.text
+    assert "data-help:hover::after" in page.text
+    assert "help.dataset.tooltip = helpText" in page.text
+    assert "help.title = helpText" not in page.text
+    assert "❓" in page.text
+    assert 'help.setAttribute("aria-label", `${label} 설명: ${helpText}`)' in page.text
+    assert "AI가 사진과 메모에서 추정한 장소 후보입니다." in page.text
+    assert "연관 유형입니다. 유사 기록, 재방문 후보 같은 관계 종류를 뜻합니다." in page.text
+    assert "result-card" in page.text
+    assert 'dataItemTitle("연관", index, relation.relation_type)' in page.text
+    assert "for (const [index, relation] of relations.entries())" in page.text
+    assert 'dataItemTitle("타임라인", index, candidate.timeline_type)' in page.text
+    assert "for (const [index, candidate] of candidates.entries())" in page.text
+    assert "data-json" in page.text
     assert '{label: "장소"' not in page.text
     assert '{label: "방문"' not in page.text
     assert '{label: "장면"' not in page.text
-    assert '{label: "활동"' not in page.text
+    assert '{label: "활동내역", value: bestActivityText(analysis)}' in page.text
+    assert '{label: "AI 요약", value: analysis?.summary}' in page.text
     assert "메모" in page.text
     assert "장소" in page.text
     assert "메뉴" in page.text
     assert "활동" in page.text
-    assert "방문 시간" in page.text
-    assert "유사 기록" in page.text
+    assert "visit_time_candidates" in page.text
+    assert "relation_type" in page.text
     assert "유사한 기록" in page.text
     assert "다시 방문한 기록" in page.text
     assert "requestNoContent" in page.text
     assert 'method: "DELETE"' in page.text
     assert "이 기록을 삭제할까요?" in page.text
     assert "recordListTitle" in page.text
+    assert "memoDisplayText" in page.text
+    assert "bestActivityText" in page.text
+    assert "recordActivitySubtitle" in page.text
+    assert "return memoDisplayText(record) || activityDisplayText(analysis) || \"요약 없음\"" in page.text
+    assert "subtitle.textContent = recordActivitySubtitle(record, analysis)" not in page.text
+    assert "hero.append(title, tags)" in page.text
     assert "recordListSubtitle" in page.text
     assert "recordListTags" in page.text
     assert "menuNameText" in page.text
     assert "stripMenuMeta" in page.text
     assert "menuDetailText" in page.text
-    assert '{label: "메뉴", value: menuDetailText(analysis)}' in page.text
+    assert "menuDetailItems" in page.text
+    assert "menuDetailList" in page.text
+    assert "tagDetailList" in page.text
+    assert "detail-menu-list" in page.text
+    assert "detail-pill-list" in page.text
+    assert "detail-memo-editor" in page.text
+    assert "detail-memo-edit" in page.text
+    assert "detail-memo-input" in page.text
+    assert "inline-size: 22px" in page.text
+    assert "font-size: 12px" in page.text
+    assert 'value instanceof Node' in page.text
+    assert "memoDetailEditor" in page.text
+    assert "saveRecordMemo" in page.text
+    assert "replaceRecord" in page.text
+    assert 'method: "PATCH"' in page.text
+    assert "input.addEventListener(\"blur\", save)" in page.text
+    assert "event.key === \"Enter\"" in page.text
+    assert "JSON.stringify({memo: nextMemo || null})" in page.text
+    assert '{label: "메모", value: memoDetailEditor(record)}' in page.text
+    assert '{label: "메뉴", value: menuDetailList(analysis)}' in page.text
+    assert '{label: "태그", value: tagDetailList(analysis?.tags)}' in page.text
     assert '{label: "금액"' not in page.text
     assert "candidateField" in page.text
     assert "bestCandidate" in page.text

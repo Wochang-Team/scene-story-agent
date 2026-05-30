@@ -15,22 +15,24 @@ TEST_USER_PREFIX = "pytest-"
 
 
 @pytest.fixture
-def client() -> Iterator[TestClient]:
+def client(tmp_path: Path) -> Iterator[TestClient]:
+    test_storage_root = tmp_path / "local_storage"
     cleanup_test_state()
-    app.dependency_overrides[get_settings] = mock_provider_settings
+    app.dependency_overrides[get_settings] = lambda: mock_provider_settings(test_storage_root)
     try:
         with TestClient(app) as test_client:
             yield test_client
     finally:
         app.dependency_overrides.pop(get_settings, None)
-        cleanup_test_state()
+        cleanup_test_state(storage_root=test_storage_root)
 
 
-def mock_provider_settings() -> Settings:
+def mock_provider_settings(test_storage_root: Path) -> Settings:
     settings = get_settings()
     return Settings(
         **{
             **settings.model_dump(),
+            "local_storage_root": str(test_storage_root),
             "ai_provider": "mock",
             "ai_model": "mock-scene-v1",
             "embedding_provider": "mock",
@@ -40,11 +42,22 @@ def mock_provider_settings() -> Settings:
     )
 
 
-def cleanup_test_state() -> None:
+def cleanup_test_state(storage_root: Path | None = None) -> None:
     settings = get_settings()
+    target_storage_root = storage_root or Path(settings.local_storage_root)
     test_user_pattern = f"{TEST_USER_PREFIX}%"
     with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
         with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                select user_id
+                from app_users
+                where auth_provider = 'local'
+                  and auth_subject like %s
+                """,
+                (test_user_pattern,),
+            )
+            test_user_ids = [row["user_id"] for row in cursor.fetchall()]
             cleanup_statements = [
                 """
                 delete from record_ai_interpretations
@@ -148,6 +161,7 @@ def cleanup_test_state() -> None:
     finally:
         redis_client.close()
 
-    storage_root = Path(settings.local_storage_root) / "users"
-    if storage_root.exists():
-        shutil.rmtree(storage_root)
+    for user_id in test_user_ids:
+        user_storage_root = target_storage_root / "users" / str(user_id)
+        if user_storage_root.exists():
+            shutil.rmtree(user_storage_root)

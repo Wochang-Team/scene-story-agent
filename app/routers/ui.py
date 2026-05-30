@@ -71,12 +71,9 @@ def upload_page() -> str:
     .user-flow-primary {
       grid-template-columns: repeat(3, minmax(300px, 390px));
     }
-    .user-flow-secondary {
-      grid-template-columns: repeat(3, minmax(300px, 390px));
-    }
     .ops-grid {
       display: grid;
-      grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+      grid-template-columns: repeat(4, minmax(260px, 1fr));
       gap: 16px;
       align-items: start;
     }
@@ -90,7 +87,7 @@ def upload_page() -> str:
       background: #ffffff;
     }
     .screen-wide {
-      grid-column: span 2;
+      grid-column: 1 / -1;
     }
     .user-flow-grid .screen {
       width: 100%;
@@ -223,30 +220,6 @@ def upload_page() -> str:
       background: #fee2e2;
       color: #991b1b;
     }
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .metric {
-      min-width: 0;
-      padding: 10px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      background: #f8fafc;
-    }
-    .metric b {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 12px;
-      color: #64748b;
-    }
-    .metric span {
-      overflow-wrap: anywhere;
-      color: #0f172a;
-      font-size: 14px;
-    }
     .list {
       display: grid;
       gap: 8px;
@@ -271,6 +244,31 @@ def upload_page() -> str:
     .record-button.is-selected {
       border-color: #2563eb;
       background: #eff6ff;
+    }
+    .record-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 10px;
+      column-gap: 0;
+      align-items: start;
+      min-width: 0;
+    }
+    .record-content.has-thumbnail {
+      grid-template-columns: 64px minmax(0, 1fr);
+      column-gap: 10px;
+    }
+    .record-copy {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .record-thumbnail {
+      width: 64px;
+      height: 64px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+      object-fit: cover;
     }
     .record-delete {
       position: absolute;
@@ -308,9 +306,7 @@ def upload_page() -> str:
     }
     .record-headline {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr);
       min-width: 0;
     }
     .record-datetime {
@@ -338,6 +334,9 @@ def upload_page() -> str:
       gap: 6px;
       min-width: 0;
       overflow: hidden;
+    }
+    .record-content > .record-tags {
+      grid-column: 1 / -1;
     }
     .meta-row {
       display: flex;
@@ -424,14 +423,115 @@ def upload_page() -> str:
       line-height: 1.4;
     }
     .data-label {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
       color: #64748b;
       font-size: 12px;
       font-weight: 700;
+    }
+    .data-help {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      line-height: 1;
+      cursor: help;
+    }
+    .data-help::after {
+      position: absolute;
+      z-index: 20;
+      inset-block-end: calc(100% + 6px);
+      inset-inline-start: 0;
+      width: max-content;
+      max-width: 240px;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #0f172a;
+      color: #ffffff;
+      content: attr(data-tooltip);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(2px);
+      transition: opacity 120ms ease, transform 120ms ease;
+      white-space: normal;
+      overflow-wrap: break-word;
+    }
+    .data-help:hover::after,
+    .data-help:focus-visible::after {
+      opacity: 1;
+      transform: translateY(0);
     }
     .data-value {
       overflow-wrap: anywhere;
       color: #0f172a;
       font-size: 14px;
+    }
+    .data-json {
+      display: block;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #0f172a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .detail-menu-list {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .detail-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+    }
+    .detail-memo-editor {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+      min-width: 0;
+    }
+    .detail-memo-text {
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+    }
+    .detail-memo-text.is-empty {
+      color: #94a3b8;
+    }
+    .detail-memo-edit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: 22px;
+      block-size: 22px;
+      min-height: 22px;
+      padding: 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      background: #f8fafc;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .detail-memo-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 32px;
+      box-sizing: border-box;
+      padding: 5px 8px;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      font: inherit;
     }
     .primary-picker {
       display: none;
@@ -490,8 +590,13 @@ def upload_page() -> str:
       display: grid;
       gap: 6px;
       min-width: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
       color: #475569;
       font-size: 12px;
+      text-align: left;
+      cursor: pointer;
     }
     .asset-item img {
       width: 100%;
@@ -500,6 +605,12 @@ def upload_page() -> str:
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       background: #f8fafc;
+    }
+    .asset-item:hover img,
+    .asset-item:focus-visible img {
+      border-color: #2563eb;
+      outline: 2px solid #dbeafe;
+      outline-offset: 1px;
     }
     .empty {
       padding: 10px 0;
@@ -516,6 +627,12 @@ def upload_page() -> str:
       padding: 10px 0;
       border-top: 1px solid #e2e8f0;
     }
+    .result-card {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
     .result-row:first-child {
       border-top: 0;
     }
@@ -523,6 +640,12 @@ def upload_page() -> str:
       margin: 0;
       overflow-wrap: anywhere;
       color: #0f172a;
+      font-weight: 800;
+    }
+    .data-item-title {
+      margin: 0;
+      color: #0f172a;
+      font-size: 13px;
       font-weight: 800;
     }
     details {
@@ -558,9 +681,6 @@ def upload_page() -> str:
       }
       .screen-wide {
         grid-column: span 1;
-      }
-      .summary-grid {
-        grid-template-columns: 1fr;
       }
       .screen,
       .user-flow-grid .screen {
@@ -639,24 +759,6 @@ def upload_page() -> str:
           </section>
         </div>
 
-        <div class="user-flow-row user-flow-secondary">
-          <section class="screen" aria-labelledby="analysis-title">
-            <h2 id="analysis-title">AI 해석 화면</h2>
-            <div id="analysis-detail"></div>
-          </section>
-
-          <section class="screen" aria-labelledby="relation-title">
-            <h2 id="relation-title">유사 기록/재방문 화면</h2>
-            <h3>임베딩 검색 결과</h3>
-            <div id="embedding-meta" class="meta-row"></div>
-            <div id="similar-results" class="result-list"></div>
-          </section>
-
-          <section class="screen" aria-labelledby="timeline-title">
-            <h2 id="timeline-title">타임라인 후보 화면</h2>
-            <div id="timeline-results" class="result-list"></div>
-          </section>
-        </div>
       </div>
     </section>
 
@@ -667,36 +769,59 @@ def upload_page() -> str:
           <h2 id="status-title">처리 상태 화면</h2>
           <div id="status-board" class="status-board" aria-label="처리 상태">
             <div class="status-item" data-step="record">
-              <span class="status-label">원본 기록</span>
+              <span class="status-label">원본 기록 저장</span>
               <span class="status-value">대기</span>
             </div>
             <div class="status-item" data-step="assets">
-              <span class="status-label">사진 업로드</span>
+              <span class="status-label">원본 파일 업로드</span>
               <span class="status-value">대기</span>
             </div>
             <div class="status-item" data-step="analysis">
               <span class="status-label">AI 해석</span>
               <span class="status-value">대기</span>
             </div>
+            <div class="status-item" data-step="thumbnail">
+              <span class="status-label">썸네일 생성</span>
+              <span class="status-value">대기</span>
+            </div>
             <div class="status-item" data-step="embedding">
-              <span class="status-label">임베딩 검색</span>
+              <span class="status-label">임베딩 생성</span>
               <span class="status-value">대기</span>
             </div>
             <div class="status-item" data-step="relations">
-              <span class="status-label">유사 기록</span>
+              <span class="status-label">연관 기록 생성</span>
+              <span class="status-value">대기</span>
+            </div>
+            <div class="status-item" data-step="timeline">
+              <span class="status-label">타임라인 후보 생성</span>
               <span class="status-value">대기</span>
             </div>
             <div class="status-item" data-step="storage">
-              <span class="status-label">저장 JSON</span>
+              <span class="status-label">저장 JSON 조회</span>
               <span class="status-value">대기</span>
             </div>
           </div>
-          <div id="summary-grid" class="summary-grid" aria-label="저장 요약"></div>
         </section>
 
-        <section class="screen" aria-labelledby="json-title">
+        <section class="screen" aria-labelledby="analysis-title">
+          <h2 id="analysis-title">AI 해석 데이터</h2>
+          <div id="analysis-detail"></div>
+        </section>
+
+        <section class="screen" aria-labelledby="relation-title">
+          <h2 id="relation-title">임베딩/연관 데이터</h2>
+          <div id="embedding-meta" class="meta-row"></div>
+          <div id="similar-results" class="result-list"></div>
+        </section>
+
+        <section class="screen" aria-labelledby="timeline-title">
+          <h2 id="timeline-title">타임라인 후보 데이터</h2>
+          <div id="timeline-results" class="result-list"></div>
+        </section>
+
+        <section class="screen screen-wide" aria-labelledby="json-title">
           <details open>
-            <summary id="json-title">저장 JSON 화면</summary>
+            <summary id="json-title">저장 JSON 데이터</summary>
             <pre id="result">대기 중</pre>
           </details>
         </section>
@@ -707,6 +832,8 @@ def upload_page() -> str:
     const state = {
       records: [],
       analyses: new Map(),
+      assets: new Map(),
+      assetUrls: new Map(),
       visitLabels: new Map(),
       selectedRecordId: null
     };
@@ -717,7 +844,6 @@ def upload_page() -> str:
     const filesInput = document.querySelector("#files");
     const primaryPicker = document.querySelector("#primary-picker");
     const statusBoard = document.querySelector("#status-board");
-    const summaryGrid = document.querySelector("#summary-grid");
     const recordList = document.querySelector("#record-list");
     const recordDetail = document.querySelector("#record-detail");
     const assetList = document.querySelector("#asset-list");
@@ -737,7 +863,6 @@ def upload_page() -> str:
         value.textContent = "대기";
         value.className = "status-value";
       }
-      renderDefaultSummary();
       result.textContent = "처리 중";
     }
 
@@ -856,41 +981,91 @@ def upload_page() -> str:
       return {"X-Local-User": localUser(), ...extra};
     }
 
-    function metric(label, value) {
-      const item = document.createElement("div");
-      item.className = "metric";
-      const title = document.createElement("b");
-      title.textContent = label;
-      const content = document.createElement("span");
-      content.textContent = value || "-";
-      item.append(title, content);
-      return item;
-    }
-
-    function renderDefaultSummary() {
-      summaryGrid.replaceChildren(
-        metric("기록 ID", "-"),
-        metric("AI 장면", "-"),
-        metric("AI 요약", "-"),
-        metric("방문 차수", "-")
-      );
-    }
-
-    function renderSummary(record, analysis, embeddingResult) {
-      summaryGrid.replaceChildren(
-        metric("기록 ID", record.record_id),
-        metric("AI 장면", analysis?.scene_type || "-"),
-        metric("AI 요약", analysis?.summary || "-"),
-        metric("방문 차수", state.visitLabels.get(record.record_id) || "-"),
-        metric("임베딩", embeddingResult ? `${embeddingResult.embedding.provider} / ${embeddingResult.embedding.dimension}차원` : "-")
-      );
-    }
-
     function appendPill(parent, text) {
       const pill = document.createElement("span");
       pill.className = "pill";
       pill.textContent = text;
       parent.appendChild(pill);
+    }
+
+    function appendUniquePill(parent, text) {
+      const value = String(text || "").trim();
+      if (!value) {
+        return;
+      }
+      const exists = Array.from(parent.children).some((child) => child.textContent === value);
+      if (!exists) {
+        appendPill(parent, value);
+      }
+    }
+
+    function embeddingModel(storageJson) {
+      return storageJson?.data?.record_embeddings?.[0]?.model || "";
+    }
+
+    function assetFilePath(asset) {
+      return `/records/${asset.record_id}/assets/${asset.asset_id}/file`;
+    }
+
+    function representativeAsset(assets) {
+      const images = (assets || []).filter((asset) => asset.content_type?.startsWith("image/"));
+      return images.find((asset) => asset.asset_type === "thumbnail") || images[0] || null;
+    }
+
+    async function assetObjectUrl(asset) {
+      if (!asset) {
+        return "";
+      }
+      if (state.assetUrls.has(asset.asset_id)) {
+        return state.assetUrls.get(asset.asset_id);
+      }
+      const response = await fetch(assetFilePath(asset), {headers: authHeaders()});
+      if (!response.ok) {
+        return "";
+      }
+      const url = URL.createObjectURL(await response.blob());
+      state.assetUrls.set(asset.asset_id, url);
+      return url;
+    }
+
+    function loadRecordThumbnail(content, asset, alt) {
+      if (!asset) {
+        return;
+      }
+      assetObjectUrl(asset).then((url) => {
+        if (url) {
+          const image = document.createElement("img");
+          image.className = "record-thumbnail";
+          image.alt = alt;
+          image.src = url;
+          content.prepend(image);
+          content.classList.add("has-thumbnail");
+        }
+      });
+    }
+
+    function uploadAssetItems(assets) {
+      const originals = assets.filter((asset) => asset.asset_type !== "thumbnail");
+      const thumbnails = assets.filter((asset) => asset.asset_type === "thumbnail");
+      return originals.map((asset, index) => ({
+        original: asset,
+        preview: asset.content_type?.startsWith("image/") ? (thumbnails[index] || asset) : null
+      }));
+    }
+
+    async function openOriginalAsset(asset) {
+      const viewer = window.open("about:blank", "_blank");
+      if (!viewer) {
+        result.textContent = "새 창을 열 수 없습니다.";
+        return;
+      }
+      const url = await assetObjectUrl(asset);
+      if (!url) {
+        viewer.close();
+        result.textContent = "원본 파일을 불러오지 못했습니다.";
+        return;
+      }
+      viewer.location.href = url;
     }
 
     function formatDate(value) {
@@ -1090,9 +1265,29 @@ def upload_page() -> str:
       return record.memo || "새 기록";
     }
 
+    function userMemoText(record) {
+      return String(record?.memo || "").trim();
+    }
+
+    function memoDisplayText(record) {
+      const memo = userMemoText(record);
+      return memo ? `📝 ${memo}` : "";
+    }
+
+    function bestActivityText(analysis) {
+      return candidateField(bestCandidate(analysis?.activity_candidates), ["name", "activity", "value", "text", "label"]);
+    }
+
+    function activityDisplayText(analysis) {
+      return bestActivityText(analysis) || analysis?.summary || "";
+    }
+
+    function recordActivitySubtitle(record, analysis) {
+      return activityDisplayText(analysis) || userMemoText(record) || "요약 없음";
+    }
+
     function recordListSubtitle(record, analysis) {
-      const activity = candidateField(bestCandidate(analysis?.activity_candidates), ["name", "activity", "value", "text", "label"]);
-      return activity || analysis?.summary || record.memo || "요약 없음";
+      return memoDisplayText(record) || activityDisplayText(analysis) || "요약 없음";
     }
 
     function recordListTags(record, analysis) {
@@ -1111,7 +1306,7 @@ def upload_page() -> str:
       return tags;
     }
 
-    function menuDetailText(analysis) {
+    function menuDetailItems(analysis) {
       const menus = Array.isArray(analysis?.menu_candidates)
         ? [...analysis.menu_candidates].sort((a, b) => candidateScore(b) - candidateScore(a))
         : [];
@@ -1128,7 +1323,39 @@ def upload_page() -> str:
           items.push(text);
         }
       }
-      return items.join(", ");
+      return items;
+    }
+
+    function menuDetailText(analysis) {
+      return menuDetailItems(analysis).join(", ");
+    }
+
+    function menuDetailList(analysis) {
+      const items = menuDetailItems(analysis);
+      if (items.length === 0) {
+        return null;
+      }
+      const list = document.createElement("div");
+      list.className = "detail-menu-list";
+      for (const item of items) {
+        const line = document.createElement("div");
+        line.textContent = item;
+        list.appendChild(line);
+      }
+      return list;
+    }
+
+    function tagDetailList(tags) {
+      const labels = candidateTexts(tags, ["name", "tag", "value", "text", "label"], 20);
+      if (labels.length === 0) {
+        return null;
+      }
+      const list = document.createElement("div");
+      list.className = "detail-pill-list";
+      for (const label of labels) {
+        appendPill(list, label);
+      }
+      return list;
     }
 
     function candidateTexts(value, keys, limit = 3) {
@@ -1158,11 +1385,58 @@ def upload_page() -> str:
       return labels[value] || value || "-";
     }
 
-    function relatedRecordItems(relatedRecords, limit = 3) {
-      return relatedRecords
-        .filter((item) => item.record)
-        .sort((a, b) => Number(b.relation?.similarity_score || 0) - Number(a.relation?.similarity_score || 0))
+    function relationScore(relation) {
+      return Number(relation?.similarity_score || 0);
+    }
+
+    function groupedRelatedRelations(relations, limit = 3) {
+      const grouped = new Map();
+      for (const relation of [...relations].sort((a, b) => relationScore(b) - relationScore(a))) {
+        const key = relation.target_record_id;
+        if (!key) {
+          continue;
+        }
+        if (!grouped.has(key)) {
+          grouped.set(key, {relation, relations: [relation]});
+        } else {
+          grouped.get(key).relations.push(relation);
+        }
+      }
+      return [...grouped.values()]
+        .sort((a, b) => relationScore(b.relation) - relationScore(a.relation))
         .slice(0, limit);
+    }
+
+    function relationLabels(relations) {
+      const seen = new Set();
+      const labels = [];
+      for (const relation of relations || []) {
+        if (!relation) {
+          continue;
+        }
+        const label = relationTypeLabel(relation.relation_type);
+        if (!seen.has(label)) {
+          seen.add(label);
+          labels.push(label);
+        }
+      }
+      return labels;
+    }
+
+    function relatedRecordItems(relatedRecords, limit = 3) {
+      const grouped = new Map();
+      for (const item of relatedRecords
+        .filter((item) => item.record)
+        .sort((a, b) => relationScore(b.relation) - relationScore(a.relation))) {
+        const key = item.record.record_id;
+        const relations = item.relations || [item.relation].filter(Boolean);
+        if (!grouped.has(key)) {
+          grouped.set(key, {...item, relations});
+        } else {
+          grouped.get(key).relations.push(...relations);
+        }
+      }
+      return [...grouped.values()].slice(0, limit);
     }
 
     function emotionIcon(value) {
@@ -1192,17 +1466,164 @@ def upload_page() -> str:
       }
     }
 
+    const dataHelpText = {
+      place_candidates: "AI가 사진과 메모에서 추정한 장소 후보입니다.",
+      visit_time_candidates: "AI가 영수증, 화면 정보, 사진 맥락에서 추정한 방문 시간 후보입니다.",
+      menu_candidates: "AI가 인식한 메뉴 또는 구매 항목 후보입니다.",
+      amount_candidates: "AI가 인식한 가격, 결제금액, 금액 후보입니다.",
+      activity_candidates: "AI가 장면에서 추정한 사용자의 활동 후보입니다.",
+      similar_record_candidates: "AI가 유사하다고 판단한 기록 후보입니다.",
+      revisit_candidates: "AI가 같은 장소 재방문 가능성이 있다고 본 후보입니다.",
+      timeline_candidates: "AI가 같은 흐름이나 묶음으로 볼 수 있다고 판단한 후보입니다.",
+      tags: "AI가 기록을 설명하기 위해 생성한 키워드입니다.",
+      raw_response_ref: "AI 원본 응답이나 참조 정보를 추적하기 위한 값입니다.",
+      relation_type: "연관 유형입니다. 유사 기록, 재방문 후보 같은 관계 종류를 뜻합니다.",
+      target_record_id: "현재 기록과 연결된 대상 기록의 ID입니다.",
+      similarity_score: "두 기록이 얼마나 비슷한지 계산한 점수입니다.",
+      decision_status: "이 관계를 화면이나 처리 과정에서 사용할지 판단한 상태입니다.",
+      reasons: "이 관계가 만들어진 근거 데이터입니다.",
+      timeline_type: "타임라인 후보의 묶음 유형입니다.",
+      grouping_key: "타임라인으로 묶을 때 사용하는 기준값입니다.",
+      confidence_score: "해당 후보를 신뢰할 수 있는 정도를 나타내는 점수입니다.",
+      reason: "타임라인 후보가 만들어진 근거입니다.",
+      created_at: "해당 데이터가 생성된 시간입니다."
+    };
+
     function row(label, value) {
       const item = document.createElement("div");
       item.className = "data-row";
       const key = document.createElement("div");
       key.className = "data-label";
-      key.textContent = label;
+      const labelText = document.createElement("span");
+      labelText.textContent = label;
+      key.appendChild(labelText);
+      const helpText = dataHelpText[label];
+      if (helpText) {
+        const help = document.createElement("span");
+        help.className = "data-help";
+        help.tabIndex = 0;
+        help.textContent = "❓";
+        help.dataset.tooltip = helpText;
+        help.setAttribute("aria-label", `${label} 설명: ${helpText}`);
+        key.appendChild(help);
+      }
       const val = document.createElement("div");
       val.className = "data-value";
-      val.textContent = value || "-";
+      if (value instanceof Node) {
+        val.appendChild(value);
+      } else {
+        val.textContent = value || "-";
+      }
       item.append(key, val);
       return item;
+    }
+
+    function dataJson(value) {
+      if (value === undefined || value === null) {
+        return "";
+      }
+      if (Array.isArray(value) && value.length === 0) {
+        return "";
+      }
+      if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) {
+        return "";
+      }
+      const code = document.createElement("code");
+      code.className = "data-json";
+      code.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      return code;
+    }
+
+    function numberText(value, digits = 4) {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric.toFixed(digits) : "";
+    }
+
+    function dataItemTitle(prefix, index, summary) {
+      const title = document.createElement("p");
+      title.className = "data-item-title";
+      title.textContent = `${prefix} ${index + 1}${summary ? ` · ${summary}` : ""}`;
+      return title;
+    }
+
+    function replaceRecord(record) {
+      const index = state.records.findIndex((item) => item.record_id === record.record_id);
+      if (index >= 0) {
+        state.records[index] = record;
+      } else {
+        state.records.unshift(record);
+      }
+      computeVisitLabels();
+      renderRecordList();
+    }
+
+    async function saveRecordMemo(record, value, input) {
+      const nextMemo = value.trim();
+      if (nextMemo === userMemoText(record)) {
+        await selectRecord(record.record_id);
+        return;
+      }
+      input.disabled = true;
+      const updated = await requestJson(`/records/${record.record_id}`, {
+        method: "PATCH",
+        headers: authHeaders({"Content-Type": "application/json"}),
+        body: JSON.stringify({memo: nextMemo || null})
+      });
+      replaceRecord(updated);
+      await selectRecord(updated.record_id);
+      result.textContent = "메모가 저장되었습니다.";
+    }
+
+    function memoDetailEditor(record) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "detail-memo-editor";
+      const text = document.createElement("span");
+      text.className = "detail-memo-text";
+      const memo = userMemoText(record);
+      text.textContent = memo || "메모 없음";
+      if (!memo) {
+        text.classList.add("is-empty");
+      }
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "detail-memo-edit";
+      editButton.textContent = "✏️";
+      editButton.title = "메모 수정";
+      editButton.setAttribute("aria-label", "메모 수정");
+      editButton.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "detail-memo-input";
+        input.value = memo;
+        input.placeholder = "메모 입력";
+        let saving = false;
+        const save = async () => {
+          if (saving) {
+            return;
+          }
+          saving = true;
+          try {
+            await saveRecordMemo(record, input.value, input);
+          } catch (error) {
+            result.textContent = error.message;
+            input.disabled = false;
+            saving = false;
+            input.focus();
+          }
+        };
+        input.addEventListener("blur", save);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            input.blur();
+          }
+        });
+        wrapper.replaceChildren(input);
+        input.focus();
+        input.select();
+      });
+      wrapper.append(text, editButton);
+      return wrapper;
     }
 
     function detailSection(title, rows) {
@@ -1239,10 +1660,12 @@ def upload_page() -> str:
         title.textContent = recordListTitle(relatedRecord, relatedAnalysis);
         const subtitle = document.createElement("div");
         subtitle.className = "related-record-subtitle";
-        subtitle.textContent = recordListSubtitle(relatedRecord, relatedAnalysis);
+        subtitle.textContent = recordActivitySubtitle(relatedRecord, relatedAnalysis);
         const meta = document.createElement("div");
         meta.className = "meta-row";
-        appendPill(meta, relationTypeLabel(relation.relation_type));
+        for (const label of relationLabels(item.relations || [relation])) {
+          appendPill(meta, label);
+        }
         button.append(title, subtitle, meta);
         list.appendChild(button);
       }
@@ -1267,15 +1690,12 @@ def upload_page() -> str:
       const title = document.createElement("div");
       title.className = "detail-title";
       title.textContent = recordListTitle(record, analysis);
-      const subtitle = document.createElement("div");
-      subtitle.className = "detail-subtitle";
-      subtitle.textContent = recordListSubtitle(record, analysis);
       const tags = document.createElement("div");
       tags.className = "detail-tags";
       for (const tag of recordListTags(record, analysis)) {
         appendPill(tags, tag);
       }
-      hero.append(title, subtitle, tags);
+      hero.append(title, tags);
       return hero;
     }
 
@@ -1286,7 +1706,6 @@ def upload_page() -> str:
       embeddingMeta.replaceChildren();
       similarResults.replaceChildren();
       timelineResults.replaceChildren();
-      renderDefaultSummary();
       result.textContent = "기록이 삭제되었습니다.";
     }
 
@@ -1341,6 +1760,11 @@ def upload_page() -> str:
         const tags = recordListTags(record, analysis);
         button.setAttribute("aria-label", `기록 선택: ${titleText}`);
 
+        const content = document.createElement("div");
+        content.className = "record-content";
+        const thumbnailAsset = representativeAsset(state.assets.get(record.record_id));
+        const copy = document.createElement("div");
+        copy.className = "record-copy";
         const headline = document.createElement("div");
         headline.className = "record-headline";
         const title = document.createElement("div");
@@ -1349,7 +1773,7 @@ def upload_page() -> str:
         const dateTime = document.createElement("time");
         dateTime.className = "record-datetime";
         dateTime.textContent = compactDateTime(recordDateTimeValue(record));
-        headline.append(title, dateTime);
+        headline.appendChild(title);
         const memo = document.createElement("div");
         memo.className = "record-memo";
         memo.textContent = subtitleText;
@@ -1358,6 +1782,9 @@ def upload_page() -> str:
         for (const tag of tags) {
           appendPill(tagRow, tag);
         }
+        copy.append(headline, memo, dateTime);
+        content.append(copy, tagRow);
+        loadRecordThumbnail(content, thumbnailAsset, titleText);
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.className = "record-delete";
@@ -1372,7 +1799,7 @@ def upload_page() -> str:
             result.textContent = error.message;
           }
         });
-        button.append(deleteButton, headline, memo, tagRow);
+        button.append(deleteButton, content);
         recordList.appendChild(button);
       }
     }
@@ -1381,36 +1808,45 @@ def upload_page() -> str:
       const sections = [
         renderDetailHero(record, analysis),
         detailSection("상세 정보", [
-          {label: "메모", value: record.memo},
+          {label: "메모", value: memoDetailEditor(record)},
           {label: "시간", value: detailDateTime(recordDateTimeValue(record))},
-          {label: "메뉴", value: menuDetailText(analysis)},
-          {label: "태그", value: candidateText(analysis?.tags)}
+          {label: "메뉴", value: menuDetailList(analysis)},
+          {label: "태그", value: tagDetailList(analysis?.tags)},
+          {label: "활동내역", value: bestActivityText(analysis)},
+          {label: "AI 요약", value: analysis?.summary}
         ]),
         connectionSection(relatedRecords || [])
       ].filter(Boolean);
       recordDetail.replaceChildren(...sections);
 
       assetList.replaceChildren();
-      if (assets.length === 0) {
+      const uploadItems = uploadAssetItems(assets);
+      if (uploadItems.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty";
         empty.textContent = "업로드된 파일이 없습니다.";
         assetList.appendChild(empty);
         return;
       }
-      for (const asset of assets) {
-        const item = document.createElement("a");
+      for (const itemAssets of uploadItems) {
+        const asset = itemAssets.original;
+        const item = document.createElement("button");
+        item.type = "button";
         item.className = "asset-item";
-        item.href = `/records/${asset.record_id}/assets/${asset.asset_id}/file`;
-        item.target = "_blank";
-        if (asset.content_type.startsWith("image/")) {
+        item.title = "원본 파일 열기";
+        item.addEventListener("click", () => openOriginalAsset(asset));
+        if (itemAssets.preview) {
           const img = document.createElement("img");
-          img.src = item.href;
           img.alt = asset.content_type;
           item.appendChild(img);
+          assetObjectUrl(itemAssets.preview).then((url) => {
+            if (url) {
+              img.src = url;
+            }
+          });
         }
         const caption = document.createElement("span");
-        caption.textContent = `${asset.asset_type} / ${Math.round((asset.byte_size || 0) / 1024)}KB`;
+        caption.textContent = `원본 / ${Math.round((asset.byte_size || 0) / 1024)}KB`;
         item.appendChild(caption);
         assetList.appendChild(item);
       }
@@ -1421,32 +1857,40 @@ def upload_page() -> str:
       if (!analysis) {
         const empty = document.createElement("div");
         empty.className = "empty";
-        empty.textContent = "AI 해석 결과가 없습니다.";
+        empty.textContent = "AI 해석 데이터가 없습니다.";
         analysisDetail.appendChild(empty);
         return;
       }
 
-      analysisDetail.replaceChildren(
-        row("장면 유형", analysis.scene_type),
-        row("요약", analysis.summary),
-        row("장소 후보", candidateText(analysis.place_candidates)),
-        row("방문 시간 후보", candidateText(analysis.visit_time_candidates)),
-        row("메뉴 후보", candidateText(analysis.menu_candidates)),
-        row("활동 후보", candidateText(analysis.activity_candidates)),
-        row("금액 후보", candidateText(analysis.amount_candidates)),
-        row("태그", candidateText(analysis.tags))
-      );
+      const meta = document.createElement("div");
+      meta.className = "meta-row";
+      appendUniquePill(meta, analysis.model);
+      if (analysis.scene_type) {
+        appendUniquePill(meta, `장면 ${analysis.scene_type}`);
+      }
+
+      const rows = [
+        row("place_candidates", dataJson(analysis.place_candidates)),
+        row("visit_time_candidates", dataJson(analysis.visit_time_candidates)),
+        row("menu_candidates", dataJson(analysis.menu_candidates)),
+        row("amount_candidates", dataJson(analysis.amount_candidates)),
+        row("activity_candidates", dataJson(analysis.activity_candidates)),
+        row("similar_record_candidates", dataJson(analysis.similar_record_candidates)),
+        row("revisit_candidates", dataJson(analysis.revisit_candidates)),
+        row("timeline_candidates", dataJson(analysis.timeline_candidates)),
+        row("tags", dataJson(analysis.tags)),
+        row("raw_response_ref", dataJson(analysis.raw_response_ref))
+      ];
+      analysisDetail.replaceChildren(...(meta.children.length > 0 ? [meta, ...rows] : rows));
     }
 
     async function fetchRelatedRecords(relations, limit = 3) {
-      const topRelations = [...relations]
-        .sort((a, b) => Number(b.similarity_score || 0) - Number(a.similarity_score || 0))
-        .slice(0, limit);
-      return Promise.all(topRelations.map(async (relation) => {
-        const record = await optionalJson(`/records/${relation.target_record_id}`, {
+      const relatedItems = groupedRelatedRelations(relations, limit);
+      return Promise.all(relatedItems.map(async (item) => {
+        const record = await optionalJson(`/records/${item.relation.target_record_id}`, {
           headers: authHeaders()
         });
-        return {relation, record};
+        return {...item, record};
       }));
     }
 
@@ -1455,63 +1899,64 @@ def upload_page() -> str:
       embeddingMeta.replaceChildren();
       const embedding = storageJson?.data?.record_embeddings?.[0];
       if (embedding) {
-        appendPill(embeddingMeta, `provider ${embedding.provider}`);
-        appendPill(embeddingMeta, `model ${embedding.model}`);
-        appendPill(embeddingMeta, `${embedding.dimension}차원`);
+        appendUniquePill(embeddingMeta, embedding.model);
+        appendUniquePill(embeddingMeta, `${embedding.dimension}차원`);
       } else {
-        appendPill(embeddingMeta, "임베딩 없음");
+        appendUniquePill(embeddingMeta, "임베딩 없음");
       }
-      appendPill(embeddingMeta, `유사 기록 ${relations.length}건`);
+      appendUniquePill(embeddingMeta, `연관 ${relations.length}건`);
 
       if (relations.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty";
-        empty.textContent = "아직 비교할 이전 기록이 없습니다.";
+        empty.textContent = "연관 데이터가 없습니다.";
         similarResults.appendChild(empty);
         return;
       }
 
-      for (const item of relatedRecords) {
-        const relation = item.relation;
-        const relatedRecord = item.record;
-        const relatedAnalysis = relatedRecord ? state.analyses.get(relatedRecord.record_id) : null;
+      for (const [index, relation] of relations.entries()) {
         const article = document.createElement("article");
-        article.className = "result-row";
-        const title = document.createElement("p");
-        title.className = "result-title";
-        title.textContent = relatedRecord ? recordListTitle(relatedRecord, relatedAnalysis) : relation.target_record_id;
-        const subtitle = document.createElement("div");
-        subtitle.className = "related-record-subtitle";
-        subtitle.textContent = relatedRecord ? recordListSubtitle(relatedRecord, relatedAnalysis) : "";
-        const meta = document.createElement("div");
-        meta.className = "meta-row";
-        appendPill(meta, relationTypeLabel(relation.relation_type));
-        article.append(title, subtitle, meta);
+        article.className = "result-row result-card";
+        article.append(
+          dataItemTitle("연관", index, relation.relation_type),
+          row("relation_type", relation.relation_type),
+          row("target_record_id", relation.target_record_id),
+          row("similarity_score", numberText(relation.similarity_score)),
+          row("decision_status", relation.decision_status),
+          row("created_at", relation.created_at),
+          row("reasons", dataJson(relation.reasons))
+        );
         similarResults.appendChild(article);
       }
     }
 
-    function renderTimeline(candidates) {
+    function renderTimeline(candidates, storageJson) {
       timelineResults.replaceChildren();
+      const meta = document.createElement("div");
+      meta.className = "meta-row";
+      appendUniquePill(meta, embeddingModel(storageJson));
+      if (meta.children.length > 0) {
+        timelineResults.appendChild(meta);
+      }
       if (candidates.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty";
-        empty.textContent = "생성된 타임라인 후보가 없습니다.";
+        empty.textContent = "타임라인 후보 데이터가 없습니다.";
         timelineResults.appendChild(empty);
         return;
       }
 
-      for (const candidate of candidates) {
+      for (const [index, candidate] of candidates.entries()) {
         const article = document.createElement("article");
-        article.className = "result-row";
-        const title = document.createElement("p");
-        title.className = "result-title";
-        title.textContent = candidate.grouping_key;
-        const meta = document.createElement("div");
-        meta.className = "meta-row";
-        appendPill(meta, candidate.timeline_type);
-        appendPill(meta, `신뢰도 ${Number(candidate.confidence_score).toFixed(2)}`);
-        article.append(title, meta);
+        article.className = "result-row result-card";
+        article.append(
+          dataItemTitle("타임라인", index, candidate.timeline_type),
+          row("timeline_type", candidate.timeline_type),
+          row("grouping_key", candidate.grouping_key),
+          row("confidence_score", numberText(candidate.confidence_score)),
+          row("reason", dataJson(candidate.reason || candidate.reasons)),
+          row("created_at", candidate.created_at)
+        );
         timelineResults.appendChild(article);
       }
     }
@@ -1520,12 +1965,21 @@ def upload_page() -> str:
       const payload = await requestJson("/records", {headers: authHeaders()});
       state.records = payload.records;
       state.analyses.clear();
+      state.assets.clear();
       await Promise.all(state.records.map(async (record) => {
-        const analysis = await optionalJson(`/records/${record.record_id}/ai-analysis`, {
-          headers: authHeaders()
-        });
+        const [analysis, assetsPayload] = await Promise.all([
+          optionalJson(`/records/${record.record_id}/ai-analysis`, {
+            headers: authHeaders()
+          }),
+          optionalJson(`/records/${record.record_id}/assets`, {
+            headers: authHeaders()
+          })
+        ]);
         if (analysis) {
           state.analyses.set(record.record_id, analysis);
+        }
+        if (assetsPayload) {
+          state.assets.set(record.record_id, assetsPayload.assets);
         }
       }));
       computeVisitLabels();
@@ -1543,6 +1997,7 @@ def upload_page() -> str:
         requestJson(`/records/${recordId}/timeline-candidates`, {headers: authHeaders()}),
         optionalJson(`/records/${recordId}/storage-json`, {headers: authHeaders()})
       ]);
+      state.assets.set(recordId, assetsPayload.assets);
       if (analysis) {
         state.analyses.set(recordId, analysis);
         computeVisitLabels();
@@ -1552,10 +2007,8 @@ def upload_page() -> str:
       renderRecordDetail(record, assetsPayload.assets, analysis, relationsPayload.relations, timelinePayload.timeline_candidates, relatedRecords);
       renderAnalysis(analysis);
       renderSimilarResults(relationsPayload.relations, relatedRecords, storageJson);
-      renderTimeline(timelinePayload.timeline_candidates);
+      renderTimeline(timelinePayload.timeline_candidates, storageJson);
       result.textContent = JSON.stringify(storageJson || {detail: "storage-json 없음"}, null, 2);
-      const latestEmbedding = storageJson?.data?.record_embeddings?.[0];
-      renderSummary(record, analysis, latestEmbedding ? {embedding: latestEmbedding} : null);
     }
 
     async function refreshAfterUpload(recordId) {
@@ -1594,7 +2047,7 @@ def upload_page() -> str:
           throw new Error("업로드할 파일을 선택하세요.");
         }
         const files = orderedUploadFiles(selectedFiles);
-        updateStep("assets", `${files.length}개 저장 중`);
+        updateStep("assets", `${files.length}개 업로드 중`);
         for (const file of files) {
           const formData = new FormData();
           formData.append("file", file);
@@ -1604,25 +2057,31 @@ def upload_page() -> str:
             body: formData
           });
         }
-        updateStep("assets", `${files.length}개 저장 완료`, "done");
+        updateStep("assets", `${files.length}개 업로드 완료`, "done");
 
         updateStep("analysis", "해석 중");
+        updateStep("thumbnail", "대기");
         const analysis = await requestJson(`/records/${record.record_id}/ai-analysis`, {
           method: "POST",
           headers: authHeaders()
         });
         state.analyses.set(record.record_id, analysis);
         updateStep("analysis", "해석 완료", "done");
+        updateStep("thumbnail", "생성 완료", "done");
 
-        updateStep("embedding", "검색 중");
+        updateStep("embedding", "생성 중");
         const embeddingResult = await requestJson(`/records/${record.record_id}/embedding`, {
           method: "POST",
           headers: authHeaders()
         });
         updateStep("embedding", `${embeddingResult.embedding.dimension}차원 생성`, "done");
 
-        updateStep("relations", "구성 중");
-        updateStep("relations", `${embeddingResult.relations.length}건`, "done");
+        updateStep("relations", "생성 중");
+        const relationCount = (embeddingResult.relations || []).length;
+        updateStep("relations", `${relationCount}건 생성`, "done");
+        updateStep("timeline", "생성 중");
+        const timelineCount = (embeddingResult.timeline_candidates || []).length;
+        updateStep("timeline", `${timelineCount}건 생성`, "done");
 
         updateStep("storage", "조회 중");
         await refreshAfterUpload(record.record_id);
@@ -1638,7 +2097,6 @@ def upload_page() -> str:
       }
     });
 
-    renderDefaultSummary();
     loadRecords().catch((error) => {
       recordList.textContent = error.message;
     });
