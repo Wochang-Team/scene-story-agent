@@ -75,7 +75,7 @@ def list_assets(
             from record_assets
             where record_id = %s
               and deleted_at is null
-            order by created_at asc
+            order by created_at asc, asset_id asc
             """,
             (record_id,),
         )

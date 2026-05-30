@@ -96,14 +96,45 @@ def test_health_and_upload_page(client):
     assert "저장 JSON 데이터" in page.text
     assert "임베딩 검색 결과" not in page.text
     assert "status-board" in page.text
+    assert "status-curl" in page.text
+    assert "status-token" in page.text
     assert "원본 기록 저장" in page.text
     assert "원본 파일 업로드" in page.text
-    assert "AI 해석" in page.text
-    assert "썸네일 생성" in page.text
-    assert "임베딩 생성" in page.text
-    assert "연관 기록 생성" in page.text
-    assert "타임라인 후보 생성" in page.text
+    assert "AI 해석 저장" in page.text
+    assert "썸네일 저장" in page.text
+    assert "임베딩 저장" in page.text
+    assert "연관 기록 저장" in page.text
+    assert "타임라인 후보 저장" in page.text
     assert "저장 JSON 조회" in page.text
+    assert "status-detail" in page.text
+    assert "호출: POST /records" in page.text
+    assert "처리: 기록 생성, 후속 처리 작업 등록" in page.text
+    assert "처리: 업로드 파일 저장" in page.text
+    assert "처리: AI 해석 결과 저장" in page.text
+    assert "처리: AI 해석 요청 중 서버 내부 이미지 처리" in page.text
+    assert "처리: 임베딩 벡터 저장" in page.text
+    assert "처리: 임베딩 요청 중 연관 후보 계산" in page.text
+    assert "처리: 임베딩 요청 중 타임라인 후보 계산" in page.text
+    assert "처리: 저장 데이터 조회" in page.text
+    assert "저장:" not in page.text
+    assert "curlCommand" in page.text
+    assert "shellQuote" in page.text
+    assert "tokenUsageText" in page.text
+    assert "force = false" in page.text
+    assert 'return force ? "토큰 사용 - · 남은 토큰 -" : ""' in page.text
+    assert "tokenNumber" in page.text
+    assert "토큰 사용" in page.text
+    assert "남은 토큰" in page.text
+    assert "recordCurl" in page.text
+    assert "assetCurl" in page.text
+    assert '.join("\\n")' in page.text
+    assert "analysisCurl" in page.text
+    assert "별도 API 호출 없음" in page.text
+    assert "별도 API 호출 없음 ·" not in page.text
+    assert "embeddingCurl" in page.text
+    assert "storageCurl" in page.text
+    assert "-F" in page.text
+    assert "fileName: file.name" in page.text
     assert "사진 업로드" not in page.text
     assert "summary-grid" not in page.text
     assert "renderSummary" not in page.text
@@ -152,6 +183,8 @@ def test_health_and_upload_page(client):
     assert "async function fetchRelatedRecords(relations, limit = 3)" in page.text
     assert "groupedRelatedRelations" in page.text
     assert "relationLabels" in page.text
+    assert "relationLabelsWithScores" in page.text
+    assert "relationScoreLabel" in page.text
     assert "grouped.set(key, {relation, relations: [relation]})" in page.text
     assert "relatedRecordItems" in page.text
     assert "detailRelatedRecords" in page.text
@@ -203,9 +236,15 @@ def test_health_and_upload_page(client):
     assert "recordListTitle" in page.text
     assert "memoDisplayText" in page.text
     assert "bestActivityText" in page.text
-    assert "recordActivitySubtitle" in page.text
+    assert "createRecordListContent" in page.text
+    assert "includeRecordTags: false" in page.text
+    assert "record-reason" not in page.text
+    assert "relationReasonText" not in page.text
+    assert "추천 근거" not in page.text
     assert "return memoDisplayText(record) || activityDisplayText(analysis) || \"요약 없음\"" in page.text
-    assert "subtitle.textContent = recordActivitySubtitle(record, analysis)" not in page.text
+    assert "related-record-title" not in page.text
+    assert "related-record-subtitle" not in page.text
+    assert "button.appendChild(content)" in page.text
     assert "hero.append(title, tags)" in page.text
     assert "recordListSubtitle" in page.text
     assert "recordListTags" in page.text
@@ -442,6 +481,11 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
         openai_calls.append(kwargs)
         return {
             "id": "resp_test",
+            "usage": {
+                "input_tokens": 11,
+                "output_tokens": 7,
+                "total_tokens": 18,
+            },
             "output_text": json.dumps(
                 {
                     "scene_type": "cafe",
@@ -475,6 +519,10 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
     assert openai_result.provider == "openai"
     assert openai_result.scene_type == "cafe"
     assert openai_result.place_candidates == [{"value": "cafe"}]
+    assert openai_result.raw_response_ref["token_usage"]["used_tokens"] == 18
+    assert openai_result.raw_response_ref["token_usage"]["input_tokens"] == 11
+    assert openai_result.raw_response_ref["token_usage"]["output_tokens"] == 7
+    assert openai_result.raw_response_ref["token_usage"]["remaining_tokens"] is None
     assert AI_CANDIDATE_KEYS.issubset(openai_result.model_dump())
     assert openai_calls[0]["url"] == "https://api.openai.com/v1/responses"
     assert openai_calls[0]["payload"]["model"] == "gpt-test"
@@ -515,7 +563,12 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
                         ]
                     }
                 }
-            ]
+            ],
+            "usageMetadata": {
+                "promptTokenCount": 13,
+                "candidatesTokenCount": 9,
+                "totalTokenCount": 22,
+            },
         }
 
     monkeypatch.setattr(gemini_module, "post_json", fake_gemini_post_json)
@@ -533,6 +586,10 @@ def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):
     assert gemini_result.provider == "gemini"
     assert gemini_result.scene_type == "gallery"
     assert gemini_result.place_candidates == [{"value": "gallery"}]
+    assert gemini_result.raw_response_ref["token_usage"]["used_tokens"] == 22
+    assert gemini_result.raw_response_ref["token_usage"]["input_tokens"] == 13
+    assert gemini_result.raw_response_ref["token_usage"]["output_tokens"] == 9
+    assert gemini_result.raw_response_ref["token_usage"]["remaining_tokens"] is None
     assert AI_CANDIDATE_KEYS.issubset(gemini_result.model_dump())
     assert "models/gemini-test:generateContent?key=test-key" in gemini_calls[0]["url"]
     assert gemini_calls[0]["payload"]["generationConfig"]["responseMimeType"] == "application/json"

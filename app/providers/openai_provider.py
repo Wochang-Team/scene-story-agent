@@ -43,7 +43,10 @@ class OpenAISceneAnalysisProvider:
             provider=self.provider,
             model=self.model,
             payload=payload,
-            raw_response_ref={"response_id": response.get("id")},
+            raw_response_ref={
+                "response_id": response.get("id"),
+                "token_usage": openai_token_usage(response),
+            },
         )
 
 
@@ -57,3 +60,20 @@ def extract_output_text(response: dict[str, Any]) -> str:
                 return content["text"]
 
     return ""
+
+
+def openai_token_usage(response: dict[str, Any]) -> dict[str, int | None]:
+    usage = response.get("usage") if isinstance(response.get("usage"), dict) else {}
+    input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens")
+    output_tokens = usage.get("output_tokens") or usage.get("completion_tokens")
+    total_tokens = usage.get("total_tokens")
+    if total_tokens is None:
+        total_tokens = sum(
+            value for value in [input_tokens, output_tokens] if isinstance(value, int)
+        ) or None
+    return {
+        "used_tokens": total_tokens,
+        "remaining_tokens": usage.get("remaining_tokens"),
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+    }

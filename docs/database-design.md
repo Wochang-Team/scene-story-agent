@@ -224,6 +224,8 @@ AI가 생성한 해석 정보와 사용자 수정 정보를 저장한다.
 - 기준:
   - Provider 응답 원문 전체를 그대로 DB에 저장하지 않는다.
   - 장애 재현에 필요한 참조 ID만 `raw_response_ref`에 저장한다.
+  - Provider가 토큰 메타를 제공하면 `raw_response_ref.token_usage`에 사용 토큰, 입력 토큰, 출력 토큰, 남은 토큰을 저장한다.
+  - 남은 토큰을 Provider가 제공하지 않으면 `null`로 저장한다.
 
 ### `record_embeddings`
 
@@ -694,6 +696,7 @@ create table processing_jobs (
 
 ## 이력관리
 
+- 2026-05-30: AI 해석 토큰 사용량을 `raw_response_ref.token_usage`에 저장하는 기준 추가
 - 2026-05-27: AI 해석 후보에 방문 시간, 활동, 유사 기록, 재방문, 타임라인 후보 컬럼 추가
 - 2026-05-24: 인프라 실행 절차를 정본 문서 참조로 대체하고 출처 정리
 - 2026-05-23: PostgreSQL 18, pgvector, UUID v7, 관리자·앱 계정 기준 반영

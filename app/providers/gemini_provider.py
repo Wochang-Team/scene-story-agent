@@ -46,7 +46,10 @@ class GeminiSceneAnalysisProvider:
             provider=self.provider,
             model=self.model,
             payload=payload,
-            raw_response_ref={"candidate_count": len(response.get("candidates", []))},
+            raw_response_ref={
+                "candidate_count": len(response.get("candidates", [])),
+                "token_usage": gemini_token_usage(response),
+            },
         )
 
 
@@ -58,3 +61,13 @@ def extract_output_text(response: dict[str, Any]) -> str:
                 return part["text"]
 
     return ""
+
+
+def gemini_token_usage(response: dict[str, Any]) -> dict[str, int | None]:
+    usage = response.get("usageMetadata") if isinstance(response.get("usageMetadata"), dict) else {}
+    return {
+        "used_tokens": usage.get("totalTokenCount"),
+        "remaining_tokens": usage.get("remainingTokens") or usage.get("remainingTokenCount"),
+        "input_tokens": usage.get("promptTokenCount"),
+        "output_tokens": usage.get("candidatesTokenCount"),
+    }

@@ -188,6 +188,45 @@ def upload_page() -> str:
       border-top: 1px solid #e2e8f0;
       font-size: 14px;
     }
+    .status-curl {
+      display: none;
+      grid-column: 1 / -1;
+      min-width: 0;
+      margin: -2px 0 0;
+      padding: 6px 8px;
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #334155;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: pre;
+    }
+    .status-curl.is-visible {
+      display: block;
+    }
+    .status-detail {
+      grid-column: 1 / -1;
+      min-width: 0;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .status-token {
+      display: none;
+      grid-column: 1 / -1;
+      min-width: 0;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .status-token.is-visible {
+      display: block;
+    }
     .status-item:first-child {
       border-top: 0;
     }
@@ -399,28 +438,18 @@ def upload_page() -> str:
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
-      padding: 8px 10px;
+      padding: 10px;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
-      background: #f8fafc;
+      background: #ffffff;
       color: #0f172a;
       text-align: left;
+      cursor: pointer;
     }
     .related-record-button:hover,
     .related-record-button:focus-visible {
       border-color: #2563eb;
       background: #eff6ff;
-    }
-    .related-record-title {
-      overflow-wrap: anywhere;
-      font-size: 13px;
-      font-weight: 800;
-    }
-    .related-record-subtitle {
-      overflow-wrap: anywhere;
-      color: #475569;
-      font-size: 12px;
-      line-height: 1.4;
     }
     .data-label {
       display: inline-flex;
@@ -771,34 +800,66 @@ def upload_page() -> str:
             <div class="status-item" data-step="record">
               <span class="status-label">원본 기록 저장</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: POST /records</span>
+              <span class="status-detail">처리: 기록 생성, 후속 처리 작업 등록</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="assets">
               <span class="status-label">원본 파일 업로드</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: POST /records/{record_id}/assets</span>
+              <span class="status-detail">처리: 업로드 파일 저장</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="analysis">
-              <span class="status-label">AI 해석</span>
+              <span class="status-label">AI 해석 저장</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: POST /records/{record_id}/ai-analysis</span>
+              <span class="status-detail">처리: AI 해석 결과 저장</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="thumbnail">
-              <span class="status-label">썸네일 생성</span>
+              <span class="status-label">썸네일 저장</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: 별도 API 없음</span>
+              <span class="status-detail">처리: AI 해석 요청 중 서버 내부 이미지 처리</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="embedding">
-              <span class="status-label">임베딩 생성</span>
+              <span class="status-label">임베딩 저장</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: POST /records/{record_id}/embedding</span>
+              <span class="status-detail">처리: 임베딩 벡터 저장</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="relations">
-              <span class="status-label">연관 기록 생성</span>
+              <span class="status-label">연관 기록 저장</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: 별도 API 없음</span>
+              <span class="status-detail">처리: 임베딩 요청 중 연관 후보 계산</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="timeline">
-              <span class="status-label">타임라인 후보 생성</span>
+              <span class="status-label">타임라인 후보 저장</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: 별도 API 없음</span>
+              <span class="status-detail">처리: 임베딩 요청 중 타임라인 후보 계산</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
             <div class="status-item" data-step="storage">
               <span class="status-label">저장 JSON 조회</span>
               <span class="status-value">대기</span>
+              <span class="status-detail">호출: GET /records/{record_id}/storage-json</span>
+              <span class="status-detail">처리: 저장 데이터 조회</span>
+              <code class="status-curl"></code>
+              <span class="status-token"></span>
             </div>
           </div>
         </section>
@@ -863,16 +924,84 @@ def upload_page() -> str:
         value.textContent = "대기";
         value.className = "status-value";
       }
+      for (const curl of statusBoard.querySelectorAll(".status-curl")) {
+        curl.textContent = "";
+        curl.classList.remove("is-visible");
+      }
+      for (const token of statusBoard.querySelectorAll(".status-token")) {
+        token.textContent = "";
+        token.classList.remove("is-visible");
+      }
       result.textContent = "처리 중";
     }
 
-    function updateStep(step, text, stateName = "running") {
-      const value = statusBoard.querySelector(`[data-step="${step}"] .status-value`);
+    function shellQuote(value) {
+      return `'${String(value).replace(/'/g, "'\\''")}'`;
+    }
+
+    function curlCommand(url, options = {}) {
+      const method = options.method || "GET";
+      const headers = options.headers || authHeaders();
+      const parts = ["curl"];
+      if (method !== "GET") {
+        parts.push("-X", method);
+      }
+      parts.push(shellQuote(new URL(url, window.location.origin).href));
+      for (const [key, value] of Object.entries(headers)) {
+        parts.push("-H", shellQuote(`${key}: ${value}`));
+      }
+      if (options.json !== undefined) {
+        parts.push("-d", shellQuote(JSON.stringify(options.json)));
+      }
+      if (options.fileName) {
+        parts.push("-F", shellQuote(`file=@${options.fileName}`));
+      }
+      return parts.join(" ");
+    }
+
+    function tokenNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number.toLocaleString("ko-KR") : "-";
+    }
+
+    function tokenUsageText(payload, force = false) {
+      const usage = payload?.raw_response_ref?.token_usage || payload?.token_usage || payload?.usage || payload?.usageMetadata;
+      if (!usage) {
+        return force ? "토큰 사용 - · 남은 토큰 -" : "";
+      }
+      const used = usage.used_tokens ?? usage.total_tokens ?? usage.totalTokenCount;
+      const remaining = usage.remaining_tokens ?? usage.remainingTokens ?? usage.remainingTokenCount;
+      const input = usage.input_tokens ?? usage.inputTokens ?? usage.promptTokenCount;
+      const output = usage.output_tokens ?? usage.outputTokens ?? usage.candidatesTokenCount;
+      const detail = [];
+      if (input !== undefined) {
+        detail.push(`입력 ${tokenNumber(input)}`);
+      }
+      if (output !== undefined) {
+        detail.push(`출력 ${tokenNumber(output)}`);
+      }
+      const suffix = detail.length > 0 ? ` (${detail.join(" · ")})` : "";
+      return `토큰 사용 ${tokenNumber(used)}${suffix} · 남은 토큰 ${tokenNumber(remaining)}`;
+    }
+
+    function updateStep(step, text, stateName = "running", curlText = "", tokenText = "") {
+      const item = statusBoard.querySelector(`[data-step="${step}"]`);
+      const value = item?.querySelector(".status-value");
       if (!value) {
         return;
       }
       value.textContent = text;
       value.className = `status-value is-${stateName}`;
+      const curl = item.querySelector(".status-curl");
+      if (curlText && curl) {
+        curl.textContent = curlText;
+        curl.classList.add("is-visible");
+      }
+      const token = item.querySelector(".status-token");
+      if (tokenText && token) {
+        token.textContent = tokenText;
+        token.classList.add("is-visible");
+      }
     }
 
     function clearPrimaryPicker() {
@@ -1282,10 +1411,6 @@ def upload_page() -> str:
       return bestActivityText(analysis) || analysis?.summary || "";
     }
 
-    function recordActivitySubtitle(record, analysis) {
-      return activityDisplayText(analysis) || userMemoText(record) || "요약 없음";
-    }
-
     function recordListSubtitle(record, analysis) {
       return memoDisplayText(record) || activityDisplayText(analysis) || "요약 없음";
     }
@@ -1304,6 +1429,39 @@ def upload_page() -> str:
         tags.push(menu);
       }
       return tags;
+    }
+
+    function createRecordListContent(record, analysis, options = {}) {
+      const extraTags = options.extraTags || [];
+      const titleText = recordListTitle(record, analysis);
+      const subtitleText = recordListSubtitle(record, analysis);
+      const tags = [...(options.includeRecordTags === false ? [] : recordListTags(record, analysis)), ...extraTags];
+      const content = document.createElement("div");
+      content.className = "record-content";
+      const thumbnailAsset = representativeAsset(state.assets.get(record.record_id));
+      const copy = document.createElement("div");
+      copy.className = "record-copy";
+      const headline = document.createElement("div");
+      headline.className = "record-headline";
+      const title = document.createElement("div");
+      title.className = "record-title";
+      title.textContent = titleText;
+      const dateTime = document.createElement("time");
+      dateTime.className = "record-datetime";
+      dateTime.textContent = compactDateTime(recordDateTimeValue(record));
+      headline.appendChild(title);
+      const memo = document.createElement("div");
+      memo.className = "record-memo";
+      memo.textContent = subtitleText;
+      const tagRow = document.createElement("div");
+      tagRow.className = "record-tags";
+      for (const tag of tags) {
+        appendPill(tagRow, tag);
+      }
+      copy.append(headline, memo, dateTime);
+      content.append(copy, tagRow);
+      loadRecordThumbnail(content, thumbnailAsset, titleText);
+      return {content, titleText};
     }
 
     function menuDetailItems(analysis) {
@@ -1421,6 +1579,28 @@ def upload_page() -> str:
         }
       }
       return labels;
+    }
+
+    function relationScoreLabel(relation) {
+      const score = Number(relation?.similarity_score);
+      return Number.isFinite(score) && score > 0 ? `${Math.round(score * 100)}%` : "";
+    }
+
+    function relationLabelsWithScores(relations) {
+      const labelsByType = new Map();
+      for (const relation of relations || []) {
+        if (!relation) {
+          continue;
+        }
+        const label = relationTypeLabel(relation.relation_type);
+        const score = Number(relation.similarity_score);
+        const current = labelsByType.get(label) || 0;
+        labelsByType.set(label, Number.isFinite(score) && score > current ? score : current);
+      }
+      return [...labelsByType.entries()].map(([label, score]) => {
+        const scoreLabel = relationScoreLabel({similarity_score: score});
+        return scoreLabel ? `${label} ${scoreLabel}` : label;
+      });
     }
 
     function relatedRecordItems(relatedRecords, limit = 3) {
@@ -1655,18 +1835,13 @@ def upload_page() -> str:
         button.className = "related-record-button";
         button.addEventListener("click", () => selectRecord(relatedRecord.record_id));
 
-        const title = document.createElement("div");
-        title.className = "related-record-title";
-        title.textContent = recordListTitle(relatedRecord, relatedAnalysis);
-        const subtitle = document.createElement("div");
-        subtitle.className = "related-record-subtitle";
-        subtitle.textContent = recordActivitySubtitle(relatedRecord, relatedAnalysis);
-        const meta = document.createElement("div");
-        meta.className = "meta-row";
-        for (const label of relationLabels(item.relations || [relation])) {
-          appendPill(meta, label);
-        }
-        button.append(title, subtitle, meta);
+        const relatedRelations = item.relations || [relation];
+        const {content, titleText} = createRecordListContent(relatedRecord, relatedAnalysis, {
+          extraTags: relationLabelsWithScores(relatedRelations),
+          includeRecordTags: false
+        });
+        button.setAttribute("aria-label", `연관 기록 선택: ${titleText}`);
+        button.appendChild(content);
         list.appendChild(button);
       }
       return list;
@@ -1755,36 +1930,9 @@ def upload_page() -> str:
         });
 
         const analysis = state.analyses.get(record.record_id);
-        const titleText = recordListTitle(record, analysis);
-        const subtitleText = recordListSubtitle(record, analysis);
-        const tags = recordListTags(record, analysis);
+        const {content, titleText} = createRecordListContent(record, analysis);
         button.setAttribute("aria-label", `기록 선택: ${titleText}`);
 
-        const content = document.createElement("div");
-        content.className = "record-content";
-        const thumbnailAsset = representativeAsset(state.assets.get(record.record_id));
-        const copy = document.createElement("div");
-        copy.className = "record-copy";
-        const headline = document.createElement("div");
-        headline.className = "record-headline";
-        const title = document.createElement("div");
-        title.className = "record-title";
-        title.textContent = titleText;
-        const dateTime = document.createElement("time");
-        dateTime.className = "record-datetime";
-        dateTime.textContent = compactDateTime(recordDateTimeValue(record));
-        headline.appendChild(title);
-        const memo = document.createElement("div");
-        memo.className = "record-memo";
-        memo.textContent = subtitleText;
-        const tagRow = document.createElement("div");
-        tagRow.className = "record-tags";
-        for (const tag of tags) {
-          appendPill(tagRow, tag);
-        }
-        copy.append(headline, memo, dateTime);
-        content.append(copy, tagRow);
-        loadRecordThumbnail(content, thumbnailAsset, titleText);
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.className = "record-delete";
@@ -2034,7 +2182,12 @@ def upload_page() -> str:
       };
 
       try {
-        updateStep("record", "저장 중");
+        const recordCurl = curlCommand("/records", {
+          method: "POST",
+          headers: authHeaders({"Content-Type": "application/json"}),
+          json: recordPayload
+        });
+        updateStep("record", "저장 중", "running", recordCurl);
         const record = await requestJson("/records", {
           method: "POST",
           headers: authHeaders({"Content-Type": "application/json"}),
@@ -2047,7 +2200,14 @@ def upload_page() -> str:
           throw new Error("업로드할 파일을 선택하세요.");
         }
         const files = orderedUploadFiles(selectedFiles);
-        updateStep("assets", `${files.length}개 업로드 중`);
+        const assetCurl = files
+          .map((file) => curlCommand(`/records/${record.record_id}/assets`, {
+            method: "POST",
+            headers: authHeaders(),
+            fileName: file.name
+          }))
+          .join("\\n");
+        updateStep("assets", `원본 ${files.length}개 저장 중`, "running", assetCurl);
         for (const file of files) {
           const formData = new FormData();
           formData.append("file", file);
@@ -2057,35 +2217,48 @@ def upload_page() -> str:
             body: formData
           });
         }
-        updateStep("assets", `${files.length}개 업로드 완료`, "done");
+        updateStep("assets", `원본 ${files.length}개 저장 완료`, "done");
 
-        updateStep("analysis", "해석 중");
-        updateStep("thumbnail", "대기");
+        const analysisCurl = curlCommand(`/records/${record.record_id}/ai-analysis`, {
+          method: "POST",
+          headers: authHeaders()
+        });
+        updateStep("analysis", "해석 저장 중", "running", analysisCurl);
+        updateStep("thumbnail", "대기", "running", "별도 API 호출 없음");
         const analysis = await requestJson(`/records/${record.record_id}/ai-analysis`, {
           method: "POST",
           headers: authHeaders()
         });
         state.analyses.set(record.record_id, analysis);
-        updateStep("analysis", "해석 완료", "done");
-        updateStep("thumbnail", "생성 완료", "done");
+        const analysisTokens = tokenUsageText(analysis, true);
+        updateStep("analysis", "해석 저장 완료", "done", analysisCurl, analysisTokens);
+        updateStep("thumbnail", "썸네일 저장 완료", "done", "별도 API 호출 없음");
 
-        updateStep("embedding", "생성 중");
+        const embeddingCurl = curlCommand(`/records/${record.record_id}/embedding`, {
+          method: "POST",
+          headers: authHeaders()
+        });
+        updateStep("embedding", "임베딩 저장 중", "running", embeddingCurl);
         const embeddingResult = await requestJson(`/records/${record.record_id}/embedding`, {
           method: "POST",
           headers: authHeaders()
         });
-        updateStep("embedding", `${embeddingResult.embedding.dimension}차원 생성`, "done");
+        const embeddingTokens = tokenUsageText(embeddingResult, true);
+        updateStep("embedding", `${embeddingResult.embedding.dimension}차원 저장 완료`, "done", embeddingCurl, embeddingTokens);
 
-        updateStep("relations", "생성 중");
+        updateStep("relations", "연관 기록 저장 중", "running", "별도 API 호출 없음");
         const relationCount = (embeddingResult.relations || []).length;
-        updateStep("relations", `${relationCount}건 생성`, "done");
-        updateStep("timeline", "생성 중");
+        updateStep("relations", `${relationCount}건 저장 완료`, "done", "별도 API 호출 없음");
+        updateStep("timeline", "타임라인 후보 저장 중", "running", "별도 API 호출 없음");
         const timelineCount = (embeddingResult.timeline_candidates || []).length;
-        updateStep("timeline", `${timelineCount}건 생성`, "done");
+        updateStep("timeline", `${timelineCount}건 저장 완료`, "done", "별도 API 호출 없음");
 
-        updateStep("storage", "조회 중");
+        const storageCurl = curlCommand(`/records/${record.record_id}/storage-json`, {
+          headers: authHeaders()
+        });
+        updateStep("storage", "저장 JSON 조회 중", "running", storageCurl);
         await refreshAfterUpload(record.record_id);
-        updateStep("storage", "조회 완료", "done");
+        updateStep("storage", "조회 완료 · 추가 저장 없음", "done");
       } catch (error) {
         for (const value of statusBoard.querySelectorAll(".status-value.is-running")) {
           value.textContent = "실패";

@@ -1,0 +1,35 @@
+{
+  "visit_id": "cafe-visit-4shot-02",
+  "place": "브라운 테이블 합정점",
+  "visit_time": "2026-05-29 16:05",
+  "table": "B-03",
+  "menu": [
+    {
+      "name": "아메리카노",
+      "amount": 4500
+    },
+    {
+      "name": "시나몬롤",
+      "amount": 5200
+    }
+  ],
+  "total_amount": 9700,
+  "files": [
+    {
+      "role": "음식사진",
+      "path": "01_food.jpg"
+    },
+    {
+      "role": "영수증사진",
+      "path": "02_receipt.jpg"
+    },
+    {
+      "role": "실내분위기사진",
+      "path": "03_interior.jpg"
+    },
+    {
+      "role": "외부간판및입구사진",
+      "path": "04_exterior_sign.jpg"
+    }
+  ]
+}
