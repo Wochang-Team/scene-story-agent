@@ -37,8 +37,8 @@ JOB_COLUMNS_WITH_ALIAS = """
 ACTIVE_STATUSES = ("queued", "running", "retrying")
 MAX_ATTEMPTS = 3
 BACKOFF_SECONDS = {
-    1: 30,
-    2: 120,
+    1: 10,
+    2: 30,
 }
 
 
@@ -143,7 +143,19 @@ def list_jobs_for_record(
 def list_available_jobs(
     connection: Connection[dict[str, Any]],
     limit: int,
+    job_types: list[str] | None = None,
+    record_id: UUID | None = None,
 ) -> list[dict[str, Any]]:
+    filters = []
+    params: list[Any] = []
+    if job_types:
+        filters.append("and job_type = any(%s)")
+        params.append(job_types)
+    if record_id is not None:
+        filters.append("and record_id = %s")
+        params.append(record_id)
+
+    params.append(limit)
     with connection.cursor() as cursor:
         cursor.execute(
             f"""
@@ -151,10 +163,11 @@ def list_available_jobs(
             from processing_jobs
             where status in ('queued', 'retrying')
               and available_at <= now()
+              {" ".join(filters)}
             order by available_at asc, created_at asc
             limit %s
             """,
-            (limit,),
+            params,
         )
         rows = cursor.fetchall()
 

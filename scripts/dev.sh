@@ -49,6 +49,21 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 echo "dev 환경으로 API 서버를 실행합니다: http://0.0.0.0:8000"
+echo "dev 환경으로 worker를 실행합니다: python -m app.workers.jobs"
 echo "종료하려면 Ctrl+C를 누르세요."
+
+python -m app.workers.jobs &
+WORKER_PID="$!"
+
+stop_processes() {
+  if [ -n "$WORKER_PID" ] && kill -0 "$WORKER_PID" >/dev/null 2>&1; then
+    echo
+    echo "worker를 종료합니다."
+    kill "$WORKER_PID" >/dev/null 2>&1 || true
+    wait "$WORKER_PID" >/dev/null 2>&1 || true
+  fi
+}
+
+trap stop_processes INT TERM EXIT
 
 fastapi run app/main.py --host 0.0.0.0 --port 8000

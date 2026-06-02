@@ -4,6 +4,7 @@ $RootDir = Split-Path -Parent $PSScriptRoot
 Set-Location $RootDir
 
 $env:ENV_FILE = ".env.local"
+$WorkerProcess = $null
 $RequiredEnvKeys = @(
     "POSTGRES_DB",
     "POSTGRES_USER",
@@ -21,6 +22,15 @@ function Test-Command {
     param([Parameter(Mandatory = $true)][string]$Name)
 
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Stop-LocalProcesses {
+    if ($null -ne $WorkerProcess -and -not $WorkerProcess.HasExited) {
+        Write-Host ""
+        Write-Host "worker를 종료합니다."
+        Stop-Process -Id $WorkerProcess.Id -Force -ErrorAction SilentlyContinue
+        $WorkerProcess.WaitForExit()
+    }
 }
 
 if (-not (Test-Command "python")) {
@@ -105,6 +115,20 @@ Get-ChildItem "scripts/postgres/initdb" -Filter "*.sql" | Sort-Object Name | For
 }
 
 Write-Host "local 환경으로 API 서버를 실행합니다: http://127.0.0.1:8000"
+Write-Host "local 환경으로 worker를 실행합니다: python -m app.workers.jobs"
 Write-Host "종료하려면 Ctrl+C를 누르세요."
 
-fastapi dev app/main.py
+$PythonPath = Join-Path $RootDir ".venv\Scripts\python.exe"
+$WorkerProcess = Start-Process `
+    -FilePath $PythonPath `
+    -ArgumentList "-m", "app.workers.jobs" `
+    -WorkingDirectory $RootDir `
+    -NoNewWindow `
+    -PassThru
+
+try {
+    fastapi dev app/main.py
+}
+finally {
+    Stop-LocalProcesses
+}

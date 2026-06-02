@@ -215,7 +215,8 @@ def upload_page() -> str:
       line-height: 1.4;
       overflow-wrap: anywhere;
     }
-    .status-token {
+    .status-token,
+    .status-duration {
       display: none;
       grid-column: 1 / -1;
       min-width: 0;
@@ -224,7 +225,8 @@ def upload_page() -> str:
       font-weight: 700;
       line-height: 1.4;
     }
-    .status-token.is-visible {
+    .status-token.is-visible,
+    .status-duration.is-visible {
       display: block;
     }
     .status-item:first-child {
@@ -238,14 +240,36 @@ def upload_page() -> str:
     .pill {
       display: inline-flex;
       align-items: center;
+      gap: 5px;
       min-height: 24px;
       padding: 2px 8px;
       border-radius: 999px;
+      border: 1px solid transparent;
       background: #f1f5f9;
       color: #475569;
       font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
+    }
+    .pill.is-status-waiting {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .pill.is-status-retry {
+      border-color: #fed7aa;
+      background: #fff7ed;
+      color: #c2410c;
+    }
+    button.pill {
+      border-color: #fed7aa;
+      cursor: pointer;
+    }
+    button.pill:hover,
+    button.pill:focus-visible {
+      border-color: #fb923c;
+      background: #ffedd5;
+      color: #9a3412;
     }
     .status-value.is-running {
       background: #dbeafe;
@@ -804,6 +828,7 @@ def upload_page() -> str:
               <span class="status-detail">처리: 기록 생성, 후속 처리 작업 등록</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="assets">
               <span class="status-label">원본 파일 업로드</span>
@@ -812,46 +837,52 @@ def upload_page() -> str:
               <span class="status-detail">처리: 업로드 파일 저장</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="analysis">
               <span class="status-label">AI 해석 저장</span>
               <span class="status-value">대기</span>
-              <span class="status-detail">호출: POST /records/{record_id}/ai-analysis</span>
-              <span class="status-detail">처리: AI 해석 결과 저장</span>
+              <span class="status-detail">호출: GET /jobs/records/{record_id}</span>
+              <span class="status-detail">처리: worker가 AI 해석 결과 저장</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="thumbnail">
               <span class="status-label">썸네일 저장</span>
               <span class="status-value">대기</span>
               <span class="status-detail">호출: 별도 API 없음</span>
-              <span class="status-detail">처리: AI 해석 요청 중 서버 내부 이미지 처리</span>
+              <span class="status-detail">처리: 파일 업로드 요청 중 이미지 썸네일 생성</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="embedding">
               <span class="status-label">임베딩 저장</span>
               <span class="status-value">대기</span>
-              <span class="status-detail">호출: POST /records/{record_id}/embedding</span>
-              <span class="status-detail">처리: 임베딩 벡터 저장</span>
+              <span class="status-detail">호출: worker 내부 처리</span>
+              <span class="status-detail">처리: 기존 임베딩 정리 후 벡터 저장</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="relations">
               <span class="status-label">연관 기록 저장</span>
               <span class="status-value">대기</span>
-              <span class="status-detail">호출: 별도 API 없음</span>
-              <span class="status-detail">처리: 임베딩 요청 중 연관 후보 계산</span>
+              <span class="status-detail">호출: worker 내부 처리</span>
+              <span class="status-detail">처리: 기존 연관 기록 정리 후 후보 계산</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="timeline">
               <span class="status-label">타임라인 후보 저장</span>
               <span class="status-value">대기</span>
-              <span class="status-detail">호출: 별도 API 없음</span>
-              <span class="status-detail">처리: 임베딩 요청 중 타임라인 후보 계산</span>
+              <span class="status-detail">호출: worker 내부 처리</span>
+              <span class="status-detail">처리: 기존 타임라인 후보 정리 후 후보 계산</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
             <div class="status-item" data-step="storage">
               <span class="status-label">저장 JSON 조회</span>
@@ -860,6 +891,7 @@ def upload_page() -> str:
               <span class="status-detail">처리: 저장 데이터 조회</span>
               <code class="status-curl"></code>
               <span class="status-token"></span>
+              <span class="status-duration"></span>
             </div>
           </div>
         </section>
@@ -914,6 +946,7 @@ def upload_page() -> str:
     const timelineResults = document.querySelector("#timeline-results");
     let selectedPrimaryFileIndex = null;
     let primaryPreviewUrls = [];
+    const stepStartedAt = new Map();
 
     function localUser() {
       return document.querySelector("#local-user").value || "local-mvp";
@@ -932,6 +965,11 @@ def upload_page() -> str:
         token.textContent = "";
         token.classList.remove("is-visible");
       }
+      for (const duration of statusBoard.querySelectorAll(".status-duration")) {
+        duration.textContent = "";
+        duration.classList.remove("is-visible");
+      }
+      stepStartedAt.clear();
       result.textContent = "처리 중";
     }
 
@@ -984,6 +1022,16 @@ def upload_page() -> str:
       return `토큰 사용 ${tokenNumber(used)}${suffix} · 남은 토큰 ${tokenNumber(remaining)}`;
     }
 
+    function formatStepDuration(milliseconds) {
+      if (!Number.isFinite(milliseconds) || milliseconds < 0) {
+        return "처리 시간 -";
+      }
+      if (milliseconds < 1000) {
+        return `처리 시간 ${Math.round(milliseconds)}ms`;
+      }
+      return `처리 시간 ${(milliseconds / 1000).toFixed(1)}초`;
+    }
+
     function updateStep(step, text, stateName = "running", curlText = "", tokenText = "") {
       const item = statusBoard.querySelector(`[data-step="${step}"]`);
       const value = item?.querySelector(".status-value");
@@ -992,6 +1040,16 @@ def upload_page() -> str:
       }
       value.textContent = text;
       value.className = `status-value is-${stateName}`;
+      if (stateName === "running" && !stepStartedAt.has(step)) {
+        stepStartedAt.set(step, performance.now());
+      } else if (stateName !== "running" && stepStartedAt.has(step)) {
+        const duration = item.querySelector(".status-duration");
+        if (duration) {
+          duration.textContent = formatStepDuration(performance.now() - stepStartedAt.get(step));
+          duration.classList.add("is-visible");
+        }
+        stepStartedAt.delete(step);
+      }
       const curl = item.querySelector(".status-curl");
       if (curlText && curl) {
         curl.textContent = curlText;
@@ -1001,6 +1059,55 @@ def upload_page() -> str:
       if (tokenText && token) {
         token.textContent = tokenText;
         token.classList.add("is-visible");
+      }
+    }
+
+    function sleepMilliseconds(milliseconds) {
+      return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+    }
+
+    function analysisJob(jobsPayload) {
+      return (jobsPayload?.jobs || []).find((job) => job.job_type === "extract_ai_interpretation");
+    }
+
+    function retryWaitText(job) {
+      const availableAt = Date.parse(job?.available_at || "");
+      if (!Number.isFinite(availableAt)) {
+        return "";
+      }
+      const remainingSeconds = Math.max(0, Math.ceil((availableAt - Date.now()) / 1000));
+      return ` · 다음 시도까지 ${remainingSeconds}초`;
+    }
+
+    async function waitForAnalysisJob(recordId, jobsCurl) {
+      while (true) {
+        const jobsPayload = await requestJson(`/jobs/records/${recordId}`, {
+          headers: authHeaders()
+        });
+        const job = analysisJob(jobsPayload);
+        if (!job) {
+          updateStep("analysis", "해석 작업 대기", "running", jobsCurl);
+          await sleepMilliseconds(1000);
+          continue;
+        }
+
+        if (job.status === "succeeded") {
+          updateStep("analysis", "해석 저장 완료", "done", jobsCurl);
+          return job;
+        }
+        if (job.status === "failed") {
+          const message = job.last_error_message || "AI 해석 작업이 실패했습니다.";
+          updateStep("analysis", `해석 실패 · ${job.last_error_code || "error"}`, "failed", jobsCurl);
+          throw new Error(message);
+        }
+        if (job.status === "retrying") {
+          updateStep("analysis", `해석 재시도 대기${retryWaitText(job)}`, "running", jobsCurl);
+        } else if (job.status === "running") {
+          updateStep("analysis", `해석 처리 중 · ${job.attempt_count + 1}회차`, "running", jobsCurl);
+        } else {
+          updateStep("analysis", "해석 대기", "running", jobsCurl);
+        }
+        await sleepMilliseconds(1000);
       }
     }
 
@@ -1110,10 +1217,20 @@ def upload_page() -> str:
       return {"X-Local-User": localUser(), ...extra};
     }
 
-    function appendPill(parent, text) {
-      const pill = document.createElement("span");
+    function appendPill(parent, text, options = {}) {
+      const pill = document.createElement(options.button ? "button" : "span");
       pill.className = "pill";
+      if (options.button) {
+        pill.type = "button";
+      }
       pill.textContent = text;
+      const statusClass = statusPillClass(text);
+      if (statusClass) {
+        pill.classList.add(statusClass);
+      }
+      if (options.onClick) {
+        pill.addEventListener("click", options.onClick);
+      }
       parent.appendChild(pill);
     }
 
@@ -1415,8 +1532,31 @@ def upload_page() -> str:
       return memoDisplayText(record) || activityDisplayText(analysis) || "요약 없음";
     }
 
-    function recordListTags(record, analysis) {
+    function recordStatusText(status) {
+      const labels = {
+        processing: "분석 대기",
+        failed: "재시도 필요",
+        ready: "준비완료",
+        draft: "초안"
+      };
+      return labels[status] || status || "";
+    }
+
+    function statusPillClass(text) {
+      if (text === "분석 대기") {
+        return "is-status-waiting";
+      }
+      if (text === "재시도 필요") {
+        return "is-status-retry";
+      }
+      return "";
+    }
+
+    function recordListTags(record, analysis, options = {}) {
       const tags = [];
+      if (options.includeStatus !== false && record.status && record.status !== "ready") {
+        tags.push(recordStatusText(record.status));
+      }
       const emotion = emotionIcon(record.emotion);
       if (emotion) {
         tags.push(emotion);
@@ -1848,9 +1988,10 @@ def upload_page() -> str:
     }
 
     function connectionSection(relatedRecords) {
-      const items = relatedRecordItems(relatedRecords, 3);
+      const relatedRecordDisplayLimit = 3;
+      const items = relatedRecordItems(relatedRecords, relatedRecordDisplayLimit);
       const section = detailSection("연관 기록", [
-        {label: "연관 기록", value: `${items.length}건`}
+        {label: "연관 기록", value: `${items.length}건 표시 · 최대 ${relatedRecordDisplayLimit}건`}
       ]);
       const relatedList = detailRelatedRecords(items);
       if (section && relatedList) {
@@ -1867,8 +2008,11 @@ def upload_page() -> str:
       title.textContent = recordListTitle(record, analysis);
       const tags = document.createElement("div");
       tags.className = "detail-tags";
-      for (const tag of recordListTags(record, analysis)) {
+      for (const tag of recordListTags(record, analysis, {includeStatus: false})) {
         appendPill(tags, tag);
+      }
+      if (record.status && record.status !== "ready") {
+        tags.appendChild(recordStatusValue(record));
       }
       hero.append(title, tags);
       return hero;
@@ -1901,6 +2045,66 @@ def upload_page() -> str:
       }
       computeVisitLabels();
       renderRecordList();
+    }
+
+    async function retryAnalysis(recordId) {
+      const retry = await requestJson(`/records/${recordId}/ai-analysis/retry`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      result.textContent = JSON.stringify({retry_job: retry}, null, 2);
+      const jobsCurl = curlCommand(`/jobs/records/${recordId}`, {
+        headers: authHeaders()
+      });
+      updateStep("analysis", "해석 재시도 대기", "running", jobsCurl);
+      await refreshAfterUpload(recordId);
+      try {
+        await waitForAnalysisJob(recordId, jobsCurl);
+        const analysisCurl = curlCommand(`/records/${recordId}/ai-analysis`, {
+          headers: authHeaders()
+        });
+        const analysis = await requestJson(`/records/${recordId}/ai-analysis`, {
+          headers: authHeaders()
+        });
+        state.analyses.set(recordId, analysis);
+        updateStep("analysis", "해석 결과 조회 완료", "done", analysisCurl, tokenUsageText(analysis, true));
+        await refreshAfterUpload(recordId);
+      } catch (error) {
+        await refreshAfterUpload(recordId);
+        throw error;
+      }
+    }
+
+    function recordStatusValue(record) {
+      const text = recordStatusText(record.status);
+      if (!text || record.status === "ready") {
+        return "";
+      }
+      const wrapper = document.createElement("div");
+      wrapper.className = "detail-pill-list";
+      if (record.status === "failed") {
+        appendPill(wrapper, text, {
+          button: true,
+          onClick: async () => {
+            const button = wrapper.querySelector("button");
+            if (button) {
+              button.disabled = true;
+            }
+            try {
+              await retryAnalysis(record.record_id);
+            } catch (error) {
+              result.textContent = error.message;
+            } finally {
+              if (button) {
+                button.disabled = false;
+              }
+            }
+          }
+        });
+      } else {
+        appendPill(wrapper, text);
+      }
+      return wrapper;
     }
 
     function renderRecordList() {
@@ -2208,6 +2412,7 @@ def upload_page() -> str:
           }))
           .join("\\n");
         updateStep("assets", `원본 ${files.length}개 저장 중`, "running", assetCurl);
+        updateStep("thumbnail", "업로드 처리에 포함", "running", "별도 API 호출 없음");
         for (const file of files) {
           const formData = new FormData();
           formData.append("file", file);
@@ -2218,45 +2423,37 @@ def upload_page() -> str:
           });
         }
         updateStep("assets", `원본 ${files.length}개 저장 완료`, "done");
+        updateStep("thumbnail", "썸네일 저장 완료", "done", "별도 API 호출 없음");
 
-        const analysisCurl = curlCommand(`/records/${record.record_id}/ai-analysis`, {
-          method: "POST",
+        const jobsCurl = curlCommand(`/jobs/records/${record.record_id}`, {
           headers: authHeaders()
         });
-        updateStep("analysis", "해석 저장 중", "running", analysisCurl);
-        updateStep("thumbnail", "대기", "running", "별도 API 호출 없음");
+        updateStep("analysis", "해석 대기", "running", jobsCurl);
+        await waitForAnalysisJob(record.record_id, jobsCurl);
+
+        const analysisCurl = curlCommand(`/records/${record.record_id}/ai-analysis`, {
+          headers: authHeaders()
+        });
         const analysis = await requestJson(`/records/${record.record_id}/ai-analysis`, {
-          method: "POST",
           headers: authHeaders()
         });
         state.analyses.set(record.record_id, analysis);
         const analysisTokens = tokenUsageText(analysis, true);
-        updateStep("analysis", "해석 저장 완료", "done", analysisCurl, analysisTokens);
-        updateStep("thumbnail", "썸네일 저장 완료", "done", "별도 API 호출 없음");
-
-        const embeddingCurl = curlCommand(`/records/${record.record_id}/embedding`, {
-          method: "POST",
-          headers: authHeaders()
-        });
-        updateStep("embedding", "임베딩 저장 중", "running", embeddingCurl);
-        const embeddingResult = await requestJson(`/records/${record.record_id}/embedding`, {
-          method: "POST",
-          headers: authHeaders()
-        });
-        const embeddingTokens = tokenUsageText(embeddingResult, true);
-        updateStep("embedding", `${embeddingResult.embedding.dimension}차원 저장 완료`, "done", embeddingCurl, embeddingTokens);
-
-        updateStep("relations", "연관 기록 저장 중", "running", "별도 API 호출 없음");
-        const relationCount = (embeddingResult.relations || []).length;
-        updateStep("relations", `${relationCount}건 저장 완료`, "done", "별도 API 호출 없음");
-        updateStep("timeline", "타임라인 후보 저장 중", "running", "별도 API 호출 없음");
-        const timelineCount = (embeddingResult.timeline_candidates || []).length;
-        updateStep("timeline", `${timelineCount}건 저장 완료`, "done", "별도 API 호출 없음");
+        updateStep("analysis", "해석 결과 조회 완료", "done", analysisCurl, analysisTokens);
 
         const storageCurl = curlCommand(`/records/${record.record_id}/storage-json`, {
           headers: authHeaders()
         });
         updateStep("storage", "저장 JSON 조회 중", "running", storageCurl);
+        const storageJson = await requestJson(`/records/${record.record_id}/storage-json`, {
+          headers: authHeaders()
+        });
+        const activeEmbeddings = (storageJson?.data?.record_embeddings || []).filter((item) => !item.deleted_at);
+        const activeRelations = (storageJson?.data?.record_relations || []).filter((item) => item.decision_status !== "hidden");
+        const timelineCandidates = storageJson?.data?.timeline_candidates || [];
+        updateStep("embedding", `${activeEmbeddings.length}건 저장 완료`, "done", "worker 내부 처리");
+        updateStep("relations", `${activeRelations.length}건 저장 완료`, "done", "worker 내부 처리");
+        updateStep("timeline", `${timelineCandidates.length}건 저장 완료`, "done", "worker 내부 처리");
         await refreshAfterUpload(record.record_id);
         updateStep("storage", "조회 완료 · 추가 저장 없음", "done");
       } catch (error) {

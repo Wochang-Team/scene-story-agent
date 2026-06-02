@@ -2,12 +2,13 @@
 
 ## 문서 목적
 
-이 문서는 로컬 개발자가 API 서버를 빠르게 실행하고 상태를 확인하는 절차를 정리한다.
+이 문서는 로컬 개발자가 API 서버와 Worker를 빠르게 실행하고 상태를 확인하는 절차를 정리한다.
 
 - 포함 범위:
   - 필수 도구 확인
   - `local` 스크립트 실행
   - API 상태 확인
+  - Worker 실행 확인
   - 8000번 포트 충돌 대응
   - 로컬 의존 서비스 종료
 - 제외 범위:
@@ -15,13 +16,15 @@
   - Docker Compose 상세 기준
   - 앱 모듈 구조 설명
   - DB 설계와 초기 SQL 상세
+  - 업로드와 AI 처리 흐름 상세
 
 상세 기준은 정본 문서를 따른다.
 
-- 실행, 환경 변수, Docker Compose 기준: `.project/core_workflow.md`
+- 공통 환경, 테스트, Docker Compose 기준: `.project/core_workflow.md`
 - 앱 파일, 엔드포인트, 모듈 구조 기준: `.project/core_project.md`
 - DB 설계와 초기 SQL 기준: `docs/database-design.md`
 - 인프라 선택 배경: `docs/development-infra.md`
+- 업로드와 AI 비동기 처리 흐름: `docs/processing-flow.md`
 
 ## 준비 항목
 
@@ -29,7 +32,7 @@
 
 | 도구 | 용도 |
 |---|---|
-| Python | API 서버 실행 |
+| Python | API 서버와 Worker 실행 |
 | Visual Studio Code | 코드 편집 |
 | Python Extension for VS Code | Python 개발 지원 |
 | Docker Desktop | PostgreSQL, Redis 실행 |
@@ -57,7 +60,7 @@ docker compose version
 
 ## 로컬 실행
 
-`local` 스크립트로 로컬 환경 준비와 서버 실행을 한 번에 처리한다.
+`local` 스크립트로 로컬 환경 준비와 실행을 처리한다.
 
 Windows PowerShell:
 
@@ -78,14 +81,24 @@ chmod +x scripts/local.sh
 ./scripts/local.sh
 ```
 
-`local` 스크립트의 실행 기준은 `.project/core_workflow.md`를 따른다.
+`local` 스크립트는 로컬 실행에 필요한 준비와 실행을 처리한다.
 
 - `.env.local`이 없으면 기본 로컬 값으로 생성한다.
 - `.venv`가 없으면 Python 가상 환경을 생성한다.
 - `requirements.txt` 의존성을 설치한다.
 - Docker Compose로 PostgreSQL과 Redis를 실행한다.
 - PostgreSQL `vector` 확장을 확인한다.
-- `fastapi dev app/main.py`로 API 서버를 실행한다.
+- `scripts/local.sh`와 `scripts/local.ps1`는 Worker와 API 서버를 함께 실행한다.
+
+Worker만 별도로 실행할 때는 다음 명령을 사용한다.
+
+```powershell
+.\.venv\Scripts\python -m app.workers.jobs
+```
+
+```bash
+./scripts/worker.sh
+```
 
 ## API 확인
 
@@ -127,6 +140,19 @@ curl http://127.0.0.1:8000/health/ready
 }
 ```
 
+## Worker 확인
+
+Worker가 실행 중이어야 AI 해석, 임베딩, 연관 기록, 타임라인 후보 생성이 진행된다.
+
+- 실행 명령:
+  - `python -m app.workers.jobs`
+- 정상 로그:
+  - `worker.started`
+- 대기 상태:
+  - Worker가 실행되지 않으면 작업은 `queued` 또는 `retrying` 상태로 남는다.
+- 처리 흐름 상세:
+  - `docs/processing-flow.md`
+
 ## 포트 충돌 대응
 
 이미 8000번 포트에서 서버가 실행 중이면 새 서버 실행은 실패한다.
@@ -159,7 +185,7 @@ kill -9 <PID>
 
 ## 종료
 
-API 서버는 실행 중인 터미널에서 종료한다.
+API 서버와 Worker는 실행 중인 터미널에서 종료한다.
 
 ```text
 Ctrl+C
@@ -188,6 +214,7 @@ docker compose --env-file .env.local down -v
 
 ## 이력관리
 
+- 2026-06-02: 로컬 실행 문서에 Worker 실행, 확인, 종료 기준 반영하고 Windows `local.ps1` 동시 실행 기준 정정, 처리 흐름 상세를 별도 문서로 분리
 - 2026-05-24: 중복 실행 기준을 정본 문서 참조로 대체하고 빠른 실행 절차 중심으로 정리
 - 2026-05-23: 환경별 실행 스크립트와 로컬 의존 서비스 버전 기준 반영
 - 2026-05-22: Windows, macOS 로컬 실행 절차와 서버 재시작 기준 정리

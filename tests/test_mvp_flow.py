@@ -1,9 +1,16 @@
+import psycopg
 from io import BytesIO
 import json
 
 from PIL import Image
+from psycopg.rows import dict_row
+from redis import Redis
 
+from app.main import app
+from app.providers.http import ProviderHttpError
 from app.schemas.storage import FIELD_CONTRACT
+from app.settings import get_settings
+from app.workers.jobs import process_next_job
 
 AI_CANDIDATE_KEYS = {
     "ocr_candidates",
@@ -59,6 +66,53 @@ def upload_asset(client, user: str, record_id: str) -> dict:
     return response.json()
 
 
+def active_test_settings():
+    return app.dependency_overrides[get_settings]()
+
+
+def run_worker_once(settings, record_id: str | None = None) -> bool:
+    redis_client = Redis(
+        host=settings.redis_host,
+        port=settings.redis_port,
+        decode_responses=True,
+    )
+    try:
+        with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+            return process_next_job(connection, redis_client, settings, record_id=record_id)
+    finally:
+        redis_client.close()
+
+
+def make_job_available(settings, job_id: str) -> None:
+    with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                update processing_jobs
+                set available_at = now()
+                where job_id = %s
+                """,
+                (job_id,),
+            )
+        connection.commit()
+
+
+def job_retry_delay_seconds(settings, job_id: str) -> float:
+    with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                select extract(epoch from (available_at - updated_at)) as delay_seconds
+                from processing_jobs
+                where job_id = %s
+                """,
+                (job_id,),
+            )
+            row = cursor.fetchone()
+    assert row is not None
+    return float(row["delay_seconds"])
+
+
 def test_health_and_upload_page(client):
     live = client.get("/health/live")
     assert live.status_code == 200
@@ -107,14 +161,16 @@ def test_health_and_upload_page(client):
     assert "타임라인 후보 저장" in page.text
     assert "저장 JSON 조회" in page.text
     assert "status-detail" in page.text
+    assert "status-duration" in page.text
     assert "호출: POST /records" in page.text
     assert "처리: 기록 생성, 후속 처리 작업 등록" in page.text
     assert "처리: 업로드 파일 저장" in page.text
-    assert "처리: AI 해석 결과 저장" in page.text
-    assert "처리: AI 해석 요청 중 서버 내부 이미지 처리" in page.text
-    assert "처리: 임베딩 벡터 저장" in page.text
-    assert "처리: 임베딩 요청 중 연관 후보 계산" in page.text
-    assert "처리: 임베딩 요청 중 타임라인 후보 계산" in page.text
+    assert "호출: GET /jobs/records/{record_id}" in page.text
+    assert "처리: worker가 AI 해석 결과 저장" in page.text
+    assert "처리: 파일 업로드 요청 중 이미지 썸네일 생성" in page.text
+    assert "처리: 기존 임베딩 정리 후 벡터 저장" in page.text
+    assert "처리: 기존 연관 기록 정리 후 후보 계산" in page.text
+    assert "처리: 기존 타임라인 후보 정리 후 후보 계산" in page.text
     assert "처리: 저장 데이터 조회" in page.text
     assert "저장:" not in page.text
     assert "curlCommand" in page.text
@@ -123,6 +179,11 @@ def test_health_and_upload_page(client):
     assert "force = false" in page.text
     assert 'return force ? "토큰 사용 - · 남은 토큰 -" : ""' in page.text
     assert "tokenNumber" in page.text
+    assert "formatStepDuration" in page.text
+    assert "performance.now()" in page.text
+    assert "처리 시간" in page.text
+    assert "waitForAnalysisJob" in page.text
+    assert "sleepMilliseconds(1000)" in page.text
     assert "토큰 사용" in page.text
     assert "남은 토큰" in page.text
     assert "recordCurl" in page.text
@@ -131,7 +192,8 @@ def test_health_and_upload_page(client):
     assert "analysisCurl" in page.text
     assert "별도 API 호출 없음" in page.text
     assert "별도 API 호출 없음 ·" not in page.text
-    assert "embeddingCurl" in page.text
+    assert "worker 내부 처리" in page.text
+    assert "embeddingCurl" not in page.text
     assert "storageCurl" in page.text
     assert "-F" in page.text
     assert "fileName: file.name" in page.text
@@ -172,6 +234,21 @@ def test_health_and_upload_page(client):
     assert "detail-thumbnail" not in page.text
     assert "related-record-thumbnail" not in page.text
     assert "record-delete" in page.text
+    assert "분석 대기" in page.text
+    assert "재시도 필요" in page.text
+    assert "is-status-waiting" in page.text
+    assert "is-status-retry" in page.text
+    assert "AI 대기" not in page.text
+    assert "AI 실패" not in page.text
+    assert "처리실패" not in page.text
+    assert "/ai-analysis/retry" in page.text
+    assert "button.pill" in page.text
+    assert "해석 재시도 대기" in page.text
+    assert "await waitForAnalysisJob(recordId, jobsCurl)" in page.text
+    assert "await refreshAfterUpload(recordId)" in page.text
+    assert "recordStatusValue" in page.text
+    assert "recordStatusPill" not in page.text
+    assert '{label: "상태"' not in page.text
     assert "detail-hero" in page.text
     assert "detail-headline" not in page.text
     assert "detail-datetime" not in page.text
@@ -189,6 +266,7 @@ def test_health_and_upload_page(client):
     assert "relatedRecordItems" in page.text
     assert "detailRelatedRecords" in page.text
     assert "related-record-button" in page.text
+    assert "최대 ${relatedRecordDisplayLimit}건" in page.text
     assert "section.appendChild(heading)" not in page.text
     assert "연관 기록" in page.text
     assert "유사 ${similarCount}건 · 재방문 ${revisitCount}건 · 타임라인 ${timelineCandidates.length}건" not in page.text
@@ -281,7 +359,6 @@ def test_health_and_upload_page(client):
     assert "menu_candidates" in page.text
     assert "satisfaction_score}점" in page.text
     assert "AI 완료" not in page.text
-    assert "AI 대기" not in page.text
     assert "local-mvp" in page.text
     assert "방문 사진" in page.text
     assert 'id="files"' in page.text
@@ -298,7 +375,7 @@ def test_health_and_upload_page(client):
     assert "satisfaction-5" in page.text
     assert "/records" in page.text
     assert "/ai-analysis" in page.text
-    assert "/embedding" in page.text
+    assert "/embedding" not in page.text
     assert "/storage-json" in page.text
 
 
@@ -336,6 +413,8 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     user = "pytest-flow"
     first = create_record(client, user, "카페 라떼와 조용한 작업")
     second = create_record(client, user, "카페 라떼와 조용한 작업")
+    assert first["status"] == "processing"
+    assert second["status"] == "processing"
     asset = upload_asset(client, user, second["record_id"])
     assert asset["storage_provider"] == "local"
     assert asset["content_type"] == "image/jpeg"
@@ -348,8 +427,13 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     assert storage_payload["data"]["app_users"]["auth_subject"] == user
     assert storage_payload["data"]["records"]["record_id"] == second["record_id"]
     assert "deleted_at" in storage_payload["data"]["records"]
-    assert len(storage_payload["data"]["record_assets"]) == 1
-    assert storage_payload["data"]["record_assets"][0]["asset_id"] == asset["asset_id"]
+    assert len(storage_payload["data"]["record_assets"]) == 2
+    initial_assets = storage_payload["data"]["record_assets"]
+    assert {item["asset_type"] for item in initial_assets} == {"photo", "thumbnail"}
+    assert any(item["asset_id"] == asset["asset_id"] for item in initial_assets)
+    assert next(item for item in initial_assets if item["asset_type"] == "thumbnail")[
+        "content_type"
+    ] == "image/webp"
     assert len(storage_payload["data"]["processing_jobs"]) == 1
     for candidate_key in AI_CANDIDATE_KEYS:
         assert candidate_key in storage_payload["field_contract"]["record_ai_interpretations"]
@@ -374,31 +458,22 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     assert jobs.status_code == 200
     assert jobs.json()["jobs"][0]["status"] == "queued"
 
-    claim = client.post("/jobs/claim")
-    assert claim.status_code == 200
-    claimed = claim.json()
-    assert claimed["job"] is not None
-    succeed = client.post(
-        f"/jobs/{claimed['job']['job_id']}/succeed",
-        json={"lock_token": claimed["lock_token"]},
-    )
-    assert succeed.status_code == 200
-    assert succeed.json()["status"] == "succeeded"
+    settings = active_test_settings()
+    assert run_worker_once(settings, first["record_id"]) is True
+    assert run_worker_once(settings, second["record_id"]) is True
 
-    analysis = client.post(f"/records/{second['record_id']}/ai-analysis", headers=auth(user))
+    completed_jobs = client.get(f"/jobs/records/{second['record_id']}", headers=auth(user))
+    assert completed_jobs.status_code == 200
+    assert completed_jobs.json()["jobs"][0]["status"] == "succeeded"
+
+    ready_detail = client.get(f"/records/{second['record_id']}", headers=auth(user))
+    assert ready_detail.status_code == 200
+    assert ready_detail.json()["status"] == "ready"
+
+    analysis = client.get(f"/records/{second['record_id']}/ai-analysis", headers=auth(user))
     assert analysis.status_code == 200, analysis.text
     assert analysis.json()["provider"] == "mock"
     assert AI_CANDIDATE_KEYS.issubset(analysis.json())
-
-    first_embedding = client.post(f"/records/{first['record_id']}/embedding", headers=auth(user))
-    assert first_embedding.status_code == 200, first_embedding.text
-
-    second_embedding = client.post(f"/records/{second['record_id']}/embedding", headers=auth(user))
-    assert second_embedding.status_code == 200, second_embedding.text
-    assert second_embedding.json()["embedding"]["provider"] == "mock"
-    assert second_embedding.json()["embedding"]["input_snapshot"]["ai_interpretation"]["summary"]
-    assert second_embedding.json()["relations"]
-    assert second_embedding.json()["timeline_candidates"]
 
     final_storage_json = client.get(
         f"/records/{second['record_id']}/storage-json",
@@ -408,7 +483,12 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     final_storage_payload = final_storage_json.json()
     assert final_storage_payload["field_contract"] == FIELD_CONTRACT
     assert len(final_storage_payload["data"]["record_ai_interpretations"]) == 1
-    assert len(final_storage_payload["data"]["record_embeddings"]) == 1
+    active_embeddings = [
+        item for item in final_storage_payload["data"]["record_embeddings"] if not item["deleted_at"]
+    ]
+    assert len(active_embeddings) == 1
+    assert active_embeddings[0]["provider"] == "mock"
+    assert active_embeddings[0]["input_snapshot"]["ai_interpretation"]["summary"]
     assert final_storage_payload["data"]["record_relations"]
     assert final_storage_payload["data"]["timeline_candidates"]
     final_ai = final_storage_payload["data"]["record_ai_interpretations"][0]
@@ -418,6 +498,25 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
     assert {asset["asset_type"] for asset in final_assets} == {"photo", "thumbnail"}
     thumbnail = next(asset for asset in final_assets if asset["asset_type"] == "thumbnail")
     assert thumbnail["content_type"] == "image/webp"
+
+    rebuilt_embedding = client.post(f"/records/{second['record_id']}/embedding", headers=auth(user))
+    assert rebuilt_embedding.status_code == 200, rebuilt_embedding.text
+    rebuilt_storage_json = client.get(
+        f"/records/{second['record_id']}/storage-json",
+        headers=auth(user),
+    )
+    rebuilt_storage_payload = rebuilt_storage_json.json()
+    rebuilt_active_embeddings = [
+        item for item in rebuilt_storage_payload["data"]["record_embeddings"] if not item["deleted_at"]
+    ]
+    rebuilt_active_relations = [
+        item
+        for item in rebuilt_storage_payload["data"]["record_relations"]
+        if item["source_record_id"] == second["record_id"] and item["decision_status"] != "hidden"
+    ]
+    assert len(rebuilt_active_embeddings) == 1
+    assert rebuilt_active_relations
+
     thumbnail_file = client.get(
         f"/records/{second['record_id']}/assets/{thumbnail['asset_id']}/file",
         headers=auth(user),
@@ -450,6 +549,62 @@ def test_record_file_job_ai_embedding_and_delete_flow(client):
 
     deleted_assets = client.get(f"/records/{second['record_id']}/assets", headers=auth(user))
     assert deleted_assets.status_code == 404
+
+
+def test_ai_worker_retries_then_marks_record_failed(client, monkeypatch):
+    user = "pytest-retry"
+    record = create_record(client, user, "간헐적인 Gemini 실패")
+    settings = active_test_settings()
+
+    def fail_analysis(**_kwargs):
+        raise ProviderHttpError(
+            "Provider request failed: HTTP 403 "
+            "Lightning dunning decision is deny for project: projects/1013163396544"
+        )
+
+    from app.workers import jobs as worker_jobs
+
+    monkeypatch.setattr(worker_jobs.ai_pipeline, "analyze_record", fail_analysis)
+
+    assert run_worker_once(settings, record["record_id"]) is True
+    first_jobs = client.get(f"/jobs/records/{record['record_id']}", headers=auth(user))
+    first_job = first_jobs.json()["jobs"][0]
+    assert first_job["status"] == "retrying"
+    assert first_job["attempt_count"] == 1
+    assert first_job["last_error_code"] == "provider_dunning_denied"
+    assert 8 <= job_retry_delay_seconds(settings, first_job["job_id"]) <= 12
+
+    make_job_available(settings, first_job["job_id"])
+    assert run_worker_once(settings, record["record_id"]) is True
+    second_jobs = client.get(f"/jobs/records/{record['record_id']}", headers=auth(user))
+    second_job = second_jobs.json()["jobs"][0]
+    assert second_job["status"] == "retrying"
+    assert second_job["attempt_count"] == 2
+    assert 28 <= job_retry_delay_seconds(settings, second_job["job_id"]) <= 32
+
+    make_job_available(settings, second_job["job_id"])
+    assert run_worker_once(settings, record["record_id"]) is True
+    final_jobs = client.get(f"/jobs/records/{record['record_id']}", headers=auth(user))
+    final_job = final_jobs.json()["jobs"][0]
+    assert final_job["status"] == "failed"
+    assert final_job["attempt_count"] == 3
+
+    failed_detail = client.get(f"/records/{record['record_id']}", headers=auth(user))
+    assert failed_detail.status_code == 200
+    assert failed_detail.json()["status"] == "failed"
+
+    retry = client.post(f"/records/{record['record_id']}/ai-analysis/retry", headers=auth(user))
+    assert retry.status_code == 200, retry.text
+    assert retry.json()["status"] == "queued"
+    assert retry.json()["attempt_count"] == 0
+
+    retried_detail = client.get(f"/records/{record['record_id']}", headers=auth(user))
+    assert retried_detail.status_code == 200
+    assert retried_detail.json()["status"] == "processing"
+
+    retried_jobs = client.get(f"/jobs/records/{record['record_id']}", headers=auth(user))
+    assert retried_jobs.status_code == 200
+    assert retried_jobs.json()["jobs"][0]["status"] == "queued"
 
 
 def test_provider_payloads_are_ready_for_real_api_keys(monkeypatch):

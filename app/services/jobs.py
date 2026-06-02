@@ -38,8 +38,15 @@ def register_record_job(
 def claim_next_job(
     connection: Connection[dict[str, Any]],
     redis_client: Redis,
+    job_types: list[str] | None = None,
+    record_id: UUID | None = None,
 ) -> tuple[dict[str, Any], str] | None:
-    candidates = job_repository.list_available_jobs(connection, limit=CLAIM_CANDIDATE_LIMIT)
+    candidates = job_repository.list_available_jobs(
+        connection,
+        limit=CLAIM_CANDIDATE_LIMIT,
+        job_types=job_types,
+        record_id=record_id,
+    )
     for candidate in candidates:
         lock_token = redis_cache.acquire_job_lock(redis_client, candidate["job_id"])
         if lock_token is None:

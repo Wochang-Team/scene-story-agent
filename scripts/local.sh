@@ -20,8 +20,15 @@ REQUIRED_ENV_KEYS=(
 )
 
 SERVER_PID=""
+WORKER_PID=""
 
 stop_server() {
+  if [ -n "$WORKER_PID" ] && kill -0 "$WORKER_PID" >/dev/null 2>&1; then
+    echo
+    echo "worker를 종료합니다."
+    kill "$WORKER_PID" >/dev/null 2>&1 || true
+    wait "$WORKER_PID" >/dev/null 2>&1 || true
+  fi
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" >/dev/null 2>&1; then
     echo
     echo "API 서버를 종료합니다."
@@ -109,7 +116,11 @@ for sql_file in scripts/postgres/initdb/*.sql; do
 done
 
 echo "local 환경으로 API 서버를 실행합니다: http://127.0.0.1:8000"
+echo "local 환경으로 worker를 실행합니다: python -m app.workers.jobs"
 echo "종료하려면 Ctrl+C를 누르세요."
+
+python -m app.workers.jobs &
+WORKER_PID="$!"
 
 fastapi dev app/main.py &
 SERVER_PID="$!"

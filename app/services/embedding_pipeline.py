@@ -84,6 +84,7 @@ def build_embedding_and_candidates(
     user_id: UUID,
     record: dict[str, Any],
 ) -> dict[str, Any]:
+    cleanup_existing_generated_data(connection, record["record_id"])
     provider = get_embedding_provider(settings)
     assets = asset_repository.list_assets(connection, record["record_id"])
     interpretation = interpretation_repository.get_latest_interpretation(
@@ -158,6 +159,26 @@ def build_embedding_and_candidates(
         "embedding": embedding,
         "relations": relations,
         "timeline_candidates": timeline_candidates,
+    }
+
+
+def cleanup_existing_generated_data(
+    connection: Connection[dict[str, Any]],
+    record_id: UUID,
+) -> dict[str, int]:
+    return {
+        "embedding_count": embedding_repository.mark_embeddings_deleted_for_record(
+            connection,
+            record_id,
+        ),
+        "relation_count": relation_repository.hide_source_relations_for_record(
+            connection,
+            record_id,
+        ),
+        "timeline_candidate_count": timeline_repository.delete_timeline_candidates_for_record(
+            connection,
+            record_id,
+        ),
     }
 
 

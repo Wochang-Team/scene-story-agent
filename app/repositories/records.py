@@ -31,9 +31,10 @@ def create_record(
                 memo,
                 emotion,
                 satisfaction_score,
-                happened_at
+                happened_at,
+                status
             )
-            values (%s, %s, %s, %s, %s)
+            values (%s, %s, %s, %s, %s, 'processing')
             returning {RECORD_COLUMNS}
             """,
             (
@@ -87,6 +88,43 @@ def get_record(
               and deleted_at is null
             """,
             (record_id, user_id),
+        )
+        return cursor.fetchone()
+
+
+def get_record_by_id(
+    connection: Connection[dict[str, Any]],
+    record_id: UUID,
+) -> dict[str, Any] | None:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"""
+            select {RECORD_COLUMNS}
+            from records
+            where record_id = %s
+              and deleted_at is null
+            """,
+            (record_id,),
+        )
+        return cursor.fetchone()
+
+
+def update_record_status(
+    connection: Connection[dict[str, Any]],
+    record_id: UUID,
+    status: str,
+) -> dict[str, Any] | None:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"""
+            update records
+            set status = %s,
+                updated_at = now()
+            where record_id = %s
+              and deleted_at is null
+            returning {RECORD_COLUMNS}
+            """,
+            (status, record_id),
         )
         return cursor.fetchone()
 

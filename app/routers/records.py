@@ -19,6 +19,7 @@ from app.repositories import timeline_candidates as timeline_repository
 from app.schemas.assets import AssetListResponse, AssetResponse
 from app.schemas.ai import SceneAnalysisResponse
 from app.schemas.embeddings import EmbeddingBuildResponse, RelationListResponse, TimelineCandidateListResponse
+from app.schemas.jobs import JobResponse
 from app.schemas.records import RecordCreate, RecordListResponse, RecordResponse, RecordUpdate
 from app.schemas.storage import StorageExportResponse
 from app.services import ai_pipeline
@@ -207,13 +208,7 @@ def analyze_record_scene(
             detail=str(exc),
         ) from exc
 
-    thumbnails = thumbnail_service.generate_record_thumbnails(
-        connection=connection,
-        settings=settings,
-        user_id=user_id,
-        record_id=record_id,
-    )
-
+    record_repository.update_record_status(connection, record_id, "ready")
     connection.commit()
     log_event(
         "ai.analysis.completed",
@@ -228,7 +223,6 @@ def analyze_record_scene(
         activity_candidate_count=len(interpretation["activity_candidates"] or []),
         amount_candidate_count=len(interpretation["amount_candidates"] or []),
         tag_count=len(interpretation["tags"] or []),
-        thumbnail_count=len(thumbnails),
     )
     return interpretation
 
@@ -259,6 +253,41 @@ def get_latest_record_scene_analysis(
         )
 
     return interpretation
+
+
+@router.post("/{record_id}/ai-analysis/retry", response_model=JobResponse)
+def retry_record_scene_analysis(
+    record_id: UUID,
+    connection: Annotated[Connection[dict[str, Any]], Depends(get_connection)],
+    redis_client: Annotated[Redis, Depends(get_redis)],
+    user_id: Annotated[UUID, Depends(get_current_user_id)],
+) -> dict[str, Any]:
+    record = record_repository.get_record(connection, user_id, record_id)
+    if record is None:
+        log_event("record.not_found", user_id=str(user_id), record_id=str(record_id))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Record not found.",
+        )
+
+    if record["status"] == "ready":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ready record cannot be retried.",
+        )
+
+    job = job_service.register_record_job(connection, redis_client, record_id)
+    record_repository.update_record_status(connection, record_id, "processing")
+    connection.commit()
+    log_event(
+        "ai.analysis_retry.created",
+        user_id=str(user_id),
+        record_id=str(record_id),
+        job_id=str(job["job_id"]),
+        job_type=job["job_type"],
+        status=job["status"],
+    )
+    return job
 
 
 @router.post(
@@ -306,6 +335,14 @@ async def upload_asset(
             byte_size=stored_file.byte_size,
             checksum_sha256=stored_file.checksum_sha256,
         )
+        thumbnails = []
+        if stored_file.asset_type == "photo":
+            thumbnails = thumbnail_service.generate_record_thumbnails(
+                connection=connection,
+                settings=settings,
+                user_id=user_id,
+                record_id=record_id,
+            )
         connection.commit()
     except Exception:
         storage.delete(stored_file.object_key)
@@ -327,6 +364,7 @@ async def upload_asset(
         content_type=asset["content_type"],
         byte_size=asset["byte_size"],
         checksum_sha256=asset["checksum_sha256"],
+        thumbnail_count=len(thumbnails),
     )
     return asset
 

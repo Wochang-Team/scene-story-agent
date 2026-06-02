@@ -39,71 +39,28 @@ pip install -r requirements.txt
 ```
 
 ## 환경별 실행 스크립트
-환경별 스크립트가 ENV 파일을 지정한다.
+프로젝트별 실행 절차는 `docs/fastapi-quickstart.md`를 따른다.
 
-```bash
-./scripts/local.sh
-./scripts/dev.sh
-./scripts/prd.sh
-```
-
-- `local`: `.env.local`을 읽고 Docker Compose 의존 서비스를 함께 실행한다.
-- `dev`: `.env.dev`를 읽고 API 서버를 실행한다.
-- `prd`: `.env.prd`를 읽고 API 서버를 실행한다.
-- `.env.dev`, `.env.prd`는 Git에 포함하지만 값은 비워둔다.
+- 환경별 스크립트는 ENV 파일을 지정한다.
+- API와 Worker 실행 조합은 프로젝트 문서에서 관리한다.
+- `.env.dev`, `.env.prd`는 Git에 포함하되 값은 비워둔다.
 
 ## 로컬 의존 서비스
-PostgreSQL과 Redis는 Docker Compose로 실행한다.
-
-```bash
-docker compose --env-file .env.local up --build -d
-docker compose --env-file .env.local ps
-```
-
-- 종료:
-
-```bash
-docker compose --env-file .env.local down
-```
-
-- 볼륨까지 삭제:
-
-```bash
-docker compose --env-file .env.local down -v
-```
+로컬 의존 서비스 실행과 종료는 `docs/fastapi-quickstart.md`를 따른다.
 
 ## 실행
-FastAPI 개발 서버로 API를 실행한다.
-
-```bash
-fastapi dev app/main.py
-```
-
-- 프로세스 확인:
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-- 의존성 확인:
-
-```bash
-curl http://127.0.0.1:8000/health/ready
-```
+API, Worker, 헬스체크 실행 절차는 `docs/fastapi-quickstart.md`를 따른다.
 
 ## 테스트
-테스트 실행 기준은 아직 확정되지 않았다.
+테스트는 `pytest`로 실행한다.
 
 ```bash
-# 확인 필요
+PYTHONPATH=. .venv/bin/pytest
 ```
 
 - 현재 상태:
-  - `tests/` 디렉터리 없음
-  - `pytest` 의존성 없음
-  - 테스트 설정 파일 없음
-- 문서상 방향:
-  - 테스트를 추가할 때 `pytest` 사용을 검토한다.
+  - `requirements.txt`에 `pytest`가 포함되어 있다.
+  - MVP 흐름과 계약 테스트는 `tests/`에서 관리한다.
   - readiness 테스트는 공유 로컬 DB와 Redis에 직접 의존하지 않게 구성한다.
 
 ## 정적 점검
@@ -174,18 +131,14 @@ curl http://127.0.0.1:8000/health/ready
   - AI Provider 키 관리와 로그 마스킹 기준 확인
 
 ## 실패 대응 기준
-장애는 API 프로세스, 의존 서비스, 외부 Provider 순서로 확인한다.
+장애는 프로세스, 의존 서비스, 외부 Provider 순서로 확인한다.
 
-- API 프로세스:
+- 프로세스:
   - `/health` 응답을 확인한다.
 - PostgreSQL:
   - `/health/ready` 응답을 확인한다.
-  - `.env.local`의 DB host, port, database, user 값을 확인한다.
-  - Docker Compose `postgres` healthcheck 상태를 확인한다.
 - Redis:
   - `/health/ready` 응답을 확인한다.
-  - `.env.local`의 Redis host, port 값을 확인한다.
-  - Docker Compose `redis` healthcheck 상태를 확인한다.
 - AI Provider:
   - OpenAI, Gemini, Mock AI Provider를 구분한다.
   - Gemini, Mock Embedding Provider를 구분한다.
@@ -200,13 +153,13 @@ curl http://127.0.0.1:8000/health/ready
 
 - Python 버전 고정 방식
 - 개발 의존성 관리 방식
-- 테스트 실행 명령
 - lint, format, typecheck 표준 도구
 - API 서버 Dockerfile과 운영 배포 절차
 - CI/CD workflow
 - DB 마이그레이션 명령
 
 ## 이력관리
+- 2026-06-02: Worker 실행 기준과 pytest 실행 기준을 반영하고 프로젝트 고유 실행 절차를 `docs/fastapi-quickstart.md`로 분리
 - 2026-05-28: AI/Embedding Provider 구현 상태와 실호출 테스트 기준 반영
 - 2026-05-27: 운영 배포 방향을 자체 서버 기준으로 수정
 - 2026-05-23: `local`, `dev`, `prd` 실행 스크립트와 ENV 파일 기준 추가

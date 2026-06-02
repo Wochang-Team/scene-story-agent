@@ -17,7 +17,7 @@ create table if not exists records (
     emotion text,
     satisfaction_score smallint,
     happened_at timestamptz,
-    status text not null default 'draft',
+    status text not null default 'processing',
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     deleted_at timestamptz,

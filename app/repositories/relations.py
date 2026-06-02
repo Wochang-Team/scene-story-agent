@@ -41,6 +41,7 @@ def upsert_relation(
             do update set
                 similarity_score = excluded.similarity_score,
                 reasons = excluded.reasons,
+                decision_status = 'suggested',
                 updated_at = now()
             returning {RELATION_COLUMNS}
             """,
@@ -94,5 +95,23 @@ def hide_relations_for_record(
               and decision_status <> 'hidden'
             """,
             (record_id, record_id),
+        )
+        return cursor.rowcount
+
+
+def hide_source_relations_for_record(
+    connection: Connection[dict[str, Any]],
+    record_id: UUID,
+) -> int:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            update record_relations
+            set decision_status = 'hidden',
+                updated_at = now()
+            where source_record_id = %s
+              and decision_status <> 'hidden'
+            """,
+            (record_id,),
         )
         return cursor.rowcount
