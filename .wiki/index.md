@@ -8,9 +8,10 @@
 
 - [프로덕트 스펙](../docs/product-spec.md): 원본 기록, AI 해석 정보, 관련 기록 연결, 타임라인, MVP 범위
 - [DB 설계](../docs/database-design.md): 원본 기록, 파일, AI 해석, 임베딩, 연결 후보, 작업 상태 테이블 설계
+- [처리 흐름](../docs/processing-flow.md): 기록 생성, 파일 업로드, 썸네일 생성, AI 비동기 처리, Worker polling, 재시도, UI polling 기준
 - [개발 인프라](../docs/development-infra.md): 자체 서버, PostgreSQL, Redis, Object Storage, OpenAI/Gemini 운영 기준
 - [개인정보 보호 조치](../docs/privacy-compliance.md): 개인정보 분류, 동의, AI 처리, 위치성 정보, 삭제, 출시 전 점검
-- [FastAPI 빠른 시작](../docs/fastapi-quickstart.md): Windows PowerShell 기준 로컬 실행 절차
+- [FastAPI 빠른 시작](../docs/fastapi-quickstart.md): 로컬 API 서버와 Worker 실행 절차
 
 ## 개발 기준 요약
 
@@ -22,6 +23,11 @@
 - AI 해석 정보:
   - 장소 후보, OCR 후보, 태그, 요약, 연결 후보를 만든다.
   - 사용자가 확인하고 수정할 수 있어야 한다.
+- 처리 흐름:
+  - API 서버는 기록 생성, 파일 업로드, 썸네일 생성, 작업 등록, 상태 조회를 맡는다.
+  - Worker는 `processing_jobs`의 `extract_ai_interpretation` 작업을 처리한다.
+  - Worker는 AI 해석, 임베딩, 연관 기록 후보, 타임라인 후보를 순차 처리한다.
+  - 실행 가능한 작업이 없으면 Worker는 1초 대기한 뒤 다시 조회한다.
 - 벡터 연결:
   - 임베딩 검색 결과는 최종 판단이 아니라 후보로 사용한다.
   - 재방문과 타임라인 반영은 후보 기록과 현재 기록을 함께 비교해 판단한다.
@@ -30,13 +36,20 @@
 - 운영:
   - 개발 데이터와 운영 데이터는 공유하지 않는다.
   - AI Provider, 스토리지, DB, Redis는 교체 가능한 경계로 둔다.
-  - MVP 작업 처리는 API 서버와 PostgreSQL `processing_jobs`를 기준으로 시작한다.
-  - 별도 작업 프로세스는 API 응답 지연이나 작업량 증가 시 검토한다.
+  - MVP 작업 처리는 API 서버, Worker, PostgreSQL `processing_jobs`를 기준으로 한다.
+  - 작업 상태와 재시도 정본은 PostgreSQL에 두고 Redis는 lock, 상태 캐시, 중복 등록 완화에 사용한다.
   - 서버는 자체 운영을 기준으로 한다.
+- 상태와 재시도:
+  - 기록 상태는 `processing`, `ready`, `failed`, `deleted`를 사용한다.
+  - 작업 상태는 `queued`, `running`, `retrying`, `succeeded`, `failed`, `canceled`를 사용한다.
+  - 1회 실패 후 10초, 2회 실패 후 30초 뒤 재시도한다.
+  - 3회 실패 시 작업과 기록을 실패 상태로 둔다.
 - 로컬 UI:
   - 서버 실행 후 `http://127.0.0.1:8000/ui/upload`에서 MVP 화면을 확인한다.
   - 업로드, 목록, 상세, 처리 상태, AI 해석 데이터, 임베딩/연관 데이터, 타임라인 후보 데이터, 저장 JSON 데이터를 한 화면에서 확인한다.
-  - 처리 상태는 API 호출, 내부 처리 여부, `curl`, 토큰 사용량을 보여준다.
+  - 처리 상태는 `GET /jobs/records/{record_id}`를 1초 주기로 polling해 갱신한다.
+  - 개발용 화면은 `processing`을 `분석 대기`, `failed`를 `재시도 필요`로 표시한다.
+  - 실사용자 화면은 기본적으로 `ready` 기록만 노출한다.
 - 환경 파일:
   - `local`은 `.env.local`을 읽는다.
   - `dev`는 `.env.dev`를 읽는다.
@@ -102,6 +115,7 @@
 
 ## 이력관리
 
+- 2026-06-02: `docs/processing-flow.md` 추가와 Worker, 상태값, 재시도, UI polling 기준 반영
 - 2026-05-30: `/ui/upload` 로컬 UI 확인 경로와 처리 상태 기준 추가
 - 2026-05-27: 자체 서버 운영 기준으로 인프라 색인 정리
 - 2026-05-24: 문서 체계 정리에 맞춰 색인 정리

@@ -86,6 +86,51 @@ def upload_page() -> str:
       border-radius: 8px;
       background: #ffffff;
     }
+    .screen-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .screen-header h2 {
+      margin: 0;
+    }
+    .screen-actions {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .screen-action {
+      min-height: 30px;
+      padding: 5px 9px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: 12px;
+    }
+    .screen-action:hover,
+    .screen-action:focus-visible {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .screen-note {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
     .screen-wide {
       grid-column: 1 / -1;
     }
@@ -897,18 +942,33 @@ def upload_page() -> str:
         </section>
 
         <section class="screen" aria-labelledby="analysis-title">
-          <h2 id="analysis-title">AI 해석 데이터</h2>
+          <div class="screen-header">
+            <h2 id="analysis-title">AI 해석 데이터</h2>
+            <div class="screen-actions">
+              <button type="button" id="generate-analysis-button" class="screen-action">AI 생성</button>
+            </div>
+          </div>
           <div id="analysis-detail"></div>
         </section>
 
         <section class="screen" aria-labelledby="relation-title">
-          <h2 id="relation-title">임베딩/연관 데이터</h2>
+          <div class="screen-header">
+            <h2 id="relation-title">임베딩/연관 데이터</h2>
+            <div class="screen-actions">
+              <button type="button" id="generate-embedding-button" class="screen-action">기존 AI로 생성</button>
+            </div>
+          </div>
           <div id="embedding-meta" class="meta-row"></div>
           <div id="similar-results" class="result-list"></div>
         </section>
 
         <section class="screen" aria-labelledby="timeline-title">
-          <h2 id="timeline-title">타임라인 후보 데이터</h2>
+          <div class="screen-header">
+            <h2 id="timeline-title">타임라인 후보 데이터</h2>
+            <div class="screen-actions">
+              <span class="screen-note">임베딩 생성 시 함께 생성</span>
+            </div>
+          </div>
           <div id="timeline-results" class="result-list"></div>
         </section>
 
@@ -944,6 +1004,8 @@ def upload_page() -> str:
     const embeddingMeta = document.querySelector("#embedding-meta");
     const similarResults = document.querySelector("#similar-results");
     const timelineResults = document.querySelector("#timeline-results");
+    const generateAnalysisButton = document.querySelector("#generate-analysis-button");
+    const generateEmbeddingButton = document.querySelector("#generate-embedding-button");
     let selectedPrimaryFileIndex = null;
     let primaryPreviewUrls = [];
     const stepStartedAt = new Map();
@@ -2075,6 +2137,60 @@ def upload_page() -> str:
       }
     }
 
+    function selectedRecordIdOrThrow() {
+      if (!state.selectedRecordId) {
+        throw new Error("먼저 기록을 선택하세요.");
+      }
+      return state.selectedRecordId;
+    }
+
+    async function generateAnalysisForSelectedRecord() {
+      const recordId = selectedRecordIdOrThrow();
+      const analysisCurl = curlCommand(`/records/${recordId}/ai-analysis`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      updateStep("analysis", "AI 생성 중", "running", analysisCurl);
+      const analysis = await requestJson(`/records/${recordId}/ai-analysis`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      state.analyses.set(recordId, analysis);
+      updateStep("analysis", "AI 생성 완료", "done", analysisCurl, tokenUsageText(analysis, true));
+      await refreshAfterUpload(recordId);
+    }
+
+    async function generateEmbeddingForSelectedRecord() {
+      const recordId = selectedRecordIdOrThrow();
+      const embeddingCurl = curlCommand(`/records/${recordId}/embedding`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      updateStep("embedding", "기존 AI로 생성 중", "running", embeddingCurl);
+      updateStep("relations", "연관 기록 생성 중", "running", embeddingCurl);
+      updateStep("timeline", "타임라인 후보 생성 중", "running", embeddingCurl);
+      const generated = await requestJson(`/records/${recordId}/embedding`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      updateStep("embedding", `${generated.embedding.dimension}차원 저장 완료`, "done", embeddingCurl);
+      updateStep("relations", `${(generated.relations || []).length}건 저장 완료`, "done", embeddingCurl);
+      updateStep("timeline", `${(generated.timeline_candidates || []).length}건 저장 완료`, "done", embeddingCurl);
+      result.textContent = JSON.stringify({generated_embedding: generated}, null, 2);
+      await refreshAfterUpload(recordId);
+    }
+
+    async function runDataAction(button, action) {
+      button.disabled = true;
+      try {
+        await action();
+      } catch (error) {
+        result.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     function recordStatusValue(record) {
       const text = recordStatusText(record.status);
       if (!text || record.status === "ready") {
@@ -2370,6 +2486,14 @@ def upload_page() -> str:
 
     filesInput.addEventListener("change", () => {
       renderPrimaryPicker(Array.from(filesInput.files));
+    });
+
+    generateAnalysisButton.addEventListener("click", () => {
+      runDataAction(generateAnalysisButton, generateAnalysisForSelectedRecord);
+    });
+
+    generateEmbeddingButton.addEventListener("click", () => {
+      runDataAction(generateEmbeddingButton, generateEmbeddingForSelectedRecord);
     });
 
     form.addEventListener("submit", async (event) => {

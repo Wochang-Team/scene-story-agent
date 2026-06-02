@@ -147,6 +147,12 @@ def test_health_and_upload_page(client):
     assert "AI 해석 데이터" in page.text
     assert "임베딩/연관 데이터" in page.text
     assert "타임라인 후보 데이터" in page.text
+    assert "AI 생성" in page.text
+    assert "기존 AI로 생성" in page.text
+    assert "임베딩 생성 시 함께 생성" in page.text
+    assert "generateAnalysisForSelectedRecord" in page.text
+    assert "generateEmbeddingForSelectedRecord" in page.text
+    assert "selectedRecordIdOrThrow" in page.text
     assert "저장 JSON 데이터" in page.text
     assert "임베딩 검색 결과" not in page.text
     assert "status-board" in page.text
@@ -193,7 +199,7 @@ def test_health_and_upload_page(client):
     assert "별도 API 호출 없음" in page.text
     assert "별도 API 호출 없음 ·" not in page.text
     assert "worker 내부 처리" in page.text
-    assert "embeddingCurl" not in page.text
+    assert "embeddingCurl" in page.text
     assert "storageCurl" in page.text
     assert "-F" in page.text
     assert "fileName: file.name" in page.text
@@ -375,7 +381,7 @@ def test_health_and_upload_page(client):
     assert "satisfaction-5" in page.text
     assert "/records" in page.text
     assert "/ai-analysis" in page.text
-    assert "/embedding" not in page.text
+    assert "/embedding" in page.text
     assert "/storage-json" in page.text
 
 

@@ -4,6 +4,13 @@
 
 ## 작업 이력
 
+- 2026-06-02: `docs/` 처리 흐름 문서 ingest
+  - 대상: `docs/product-spec.md`, `docs/database-design.md`, `docs/development-infra.md`, `docs/fastapi-quickstart.md`, `docs/privacy-compliance.md`, `docs/processing-flow.md`
+  - 변경: `.wiki/index.md`, `.wiki/insights.md`, `.wiki/log.md`
+  - 기준: API 서버는 기록 저장, 파일 저장, 썸네일 생성, 작업 등록, 상태 조회를 맡는다.
+  - 기준: Worker는 `processing_jobs`를 polling하고 AI 해석, 임베딩, 연관 기록 후보, 타임라인 후보를 순차 처리한다.
+  - 기준: 작업 상태와 재시도 정본은 PostgreSQL에 두고 Redis는 lock, 상태 캐시, 중복 등록 완화에 사용한다.
+  - 기준: 개발용 화면은 `processing`과 `failed` 기록을 표시하고, 실사용자 화면은 `ready` 기록만 기본 노출한다.
 - 2026-05-30: 로컬 MVP UI와 처리 상태 문서 반영
   - 변경: `README.md`, `docs/product-spec.md`, `docs/database-design.md`, `.wiki/index.md`, `.wiki/insights.md`
   - 기준: 서버 실행 후 `/ui/upload`에서 MVP 업로드, 목록, 상세, 처리 상태, 저장 데이터를 확인한다.
@@ -39,6 +46,7 @@
 
 ## 이력관리
 
+- 2026-06-02: `docs/` 처리 흐름 문서 ingest 이력 추가
 - 2026-05-30: 로컬 MVP UI와 처리 상태 문서 반영 이력 추가
 - 2026-05-27: 자체 서버 운영 기준 문서 변경 이력 추가
 - 2026-05-24: `docs/` 문서 체계 정리 이력 추가
