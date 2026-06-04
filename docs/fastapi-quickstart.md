@@ -108,8 +108,25 @@ Worker만 별도로 실행할 때는 다음 명령을 사용한다.
 http://127.0.0.1:8000
 http://127.0.0.1:8000/health
 http://127.0.0.1:8000/health/ready
+http://127.0.0.1:8000/openapi.json
 http://127.0.0.1:8000/docs
+http://127.0.0.1:8000/redoc
 ```
+
+FastAPI가 자동으로 제공하는 API 문서 경로는 다음이다.
+
+| 경로 | 지원 여부 | 용도 |
+|---|---|---|
+| `/openapi.json` | 지원 | 현재 실행 중인 API의 OpenAPI JSON 스키마를 제공한다. |
+| `/docs` | 지원 | Swagger UI 기반 API 문서를 제공한다. |
+| `/redoc` | 지원 | ReDoc 기반 API 문서를 제공한다. |
+
+- 기준:
+  - `app/main.py`에서 `FastAPI(title="scene-story-agent")` 기본 설정을 사용한다.
+  - `openapi_url`, `docs_url`, `redoc_url`을 별도로 끄거나 변경하지 않는다.
+- 프론트엔드 참고:
+  - 현재 로컬 스키마는 `http://127.0.0.1:8000/openapi.json`에서 확인한다.
+  - 브라우저에서 직접 `fetch`할 때는 CORS 설정 여부를 별도로 확인한다.
 
 터미널에서는 다음 명령으로 확인한다.
 
@@ -214,6 +231,7 @@ docker compose --env-file .env.local down -v
 
 ## 이력관리
 
+- 2026-06-03: FastAPI 자동 제공 문서 경로(`/openapi.json`, `/docs`, `/redoc`)와 프론트엔드 참고 기준 추가
 - 2026-06-02: 로컬 실행 문서에 Worker 실행, 확인, 종료 기준 반영하고 Windows `local.ps1` 동시 실행 기준 정정, 처리 흐름 상세를 별도 문서로 분리
 - 2026-05-24: 중복 실행 기준을 정본 문서 참조로 대체하고 빠른 실행 절차 중심으로 정리
 - 2026-05-23: 환경별 실행 스크립트와 로컬 의존 서비스 버전 기준 반영

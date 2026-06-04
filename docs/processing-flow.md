@@ -10,6 +10,7 @@
   - AI 비동기 작업 등록과 Worker 처리
   - 재시도 기준
   - UI 상태 조회와 화면 갱신
+  - 처리 데이터 확인 화면의 API 호출 흐름
 - 제외 범위:
   - 인프라 구성 선택 이유
   - 테이블, 컬럼, 제약 상세
@@ -127,7 +128,41 @@ UI는 서버 push가 아니라 polling으로 처리 상태를 확인한다.
   - 기록 목록과 상세를 다시 조회한다.
   - 개발용 화면에 `재시도 필요`를 표시한다.
 
-## 7. 상태 노출 기준
+## 7. 처리 데이터 확인 화면 호출 흐름
+
+처리 데이터 확인 화면은 선택한 기록의 저장 결과를 조회 API로 모아 보여준다.
+
+- 대상 화면:
+  - `GET /ui/upload`
+- 호출 기준:
+  - 화면 진입 시 기록 목록을 먼저 조회한다.
+  - 사용자가 기록을 선택하면 선택 기록의 상세 데이터와 파생 데이터를 함께 조회한다.
+  - AI 해석이 없을 수 있는 항목은 없는 상태를 허용한다.
+  - 저장 JSON은 처리 결과 원문 확인용으로 사용한다.
+
+| 단계 | Method | URL | 용도 |
+|---|---:|---|---|
+| 목록 조회 | GET | `/records` | 화면에 표시할 기록 목록을 가져온다. |
+| 기록 선택 | GET | `/records/{record_id}` | 선택한 기록의 기본 정보를 가져온다. |
+| 기록 선택 | GET | `/records/{record_id}/assets` | 원본 파일과 썸네일 목록을 가져온다. |
+| 기록 선택 | GET | `/records/{record_id}/ai-analysis` | 최신 AI 해석 데이터를 가져온다. |
+| 기록 선택 | GET | `/records/{record_id}/relations` | 연관 기록 후보를 가져온다. |
+| 기록 선택 | GET | `/records/{record_id}/timeline-candidates` | 타임라인 후보를 가져온다. |
+| 기록 선택 | GET | `/records/{record_id}/storage-json` | 저장된 처리 데이터 전체를 가져온다. |
+| 상태 확인 | GET | `/jobs/records/{record_id}` | 처리 작업 상태를 polling한다. |
+
+- 병렬 조회 묶음:
+  - `GET /records/{record_id}`
+  - `GET /records/{record_id}/assets`
+  - `GET /records/{record_id}/ai-analysis`
+  - `GET /records/{record_id}/relations`
+  - `GET /records/{record_id}/timeline-candidates`
+  - `GET /records/{record_id}/storage-json`
+- 재처리 호출:
+  - `POST /records/{record_id}/ai-analysis/retry`: 실패한 AI 해석 작업을 다시 등록한다.
+  - `POST /records/{record_id}/embedding`: 기존 AI 해석 기준으로 임베딩, 연관 기록, 타임라인 후보를 다시 생성한다.
+
+## 8. 상태 노출 기준
 
 개발용 화면과 실사용자 화면은 상태 노출 기준을 분리한다.
 
@@ -141,4 +176,5 @@ UI는 서버 push가 아니라 polling으로 처리 상태를 확인한다.
 
 ## 이력관리
 
+- 2026-06-03: 처리 데이터 확인 화면의 API 호출 흐름과 병렬 조회 묶음 추가
 - 2026-06-02: 기록 업로드, AI 비동기 처리, Worker polling, 재시도, UI polling 기준 문서 신설
