@@ -108,12 +108,14 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-docker compose --env-file "$ENV_FILE" up --build -d postgres redis
+# PostgreSQL은 .env.local에 지정한 개발 DB를 사용한다.
+# docker compose --env-file "$ENV_FILE" up --build -d postgres redis
+docker compose --env-file "$ENV_FILE" up --build -d redis
 
-for sql_file in scripts/postgres/initdb/*.sql; do
-  docker compose --env-file "$ENV_FILE" exec -T postgres \
-    sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <"$sql_file"
-done
+# for sql_file in scripts/postgres/initdb/*.sql; do
+#   docker compose --env-file "$ENV_FILE" exec -T postgres \
+#     sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <"$sql_file"
+# done
 
 echo "local 환경으로 API 서버를 실행합니다: http://127.0.0.1:8000"
 echo "local 환경으로 worker를 실행합니다: python -m app.workers.jobs"
