@@ -1,0 +1,56 @@
+name: 'Setup Env'
+description: 'Fetch secrets from Vault and export as env'
+
+inputs:
+  vault_addr:
+    required: true
+  vault_token:
+    required: true
+
+outputs:
+  action_token:
+    value: ${{ steps.export.outputs.action_token }}
+  repository:
+    value: ${{ steps.export.outputs.repository }}
+  path:
+    value: ${{ steps.export.outputs.path }}
+  harbor_password:
+    value: ${{ steps.export.outputs.harbor_password }}
+  harbor_username:
+    value: ${{ steps.export.outputs.harbor_username }}
+  registry:
+    value: ${{ steps.export.outputs.registry }}
+  discord_webhook_url:
+    value: ${{ steps.export.outputs.discord_webhook_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup env
+      id: vault
+      uses: hashicorp/vault-action@v2
+      with:
+        url: ${{ inputs.vault_addr }}
+        method: token
+        token: ${{ inputs.vault_token }}
+        secrets: |
+          env/data/infra/github ACTION_TOKEN | action_token ;
+          env/data/infra/github PATH | path ;
+          env/data/infra/github REPOSITORY | repository ;
+          env/data/infra/harbor/dev PASSWORD | harbor_password ;
+          env/data/infra/harbor/dev USERNAME | harbor_username ;
+          env/data/infra/harbor/dev REGISTRY | registry ;
+          env/data/scene-story/python  DISCORD_WEBHOOK_URL | discord_webhook_url ;
+
+    # 🔥 환경 변수 export
+    - name: Export env
+      id: export
+      shell: bash
+      run: |
+        echo "action_token=${{ steps.vault.outputs.action_token }}" >> "$GITHUB_OUTPUT"
+        echo "repository=${{ steps.vault.outputs.repository }}" >> "$GITHUB_OUTPUT"
+        echo "path=${{ steps.vault.outputs.path }}" >> "$GITHUB_OUTPUT"
+        echo "harbor_password=${{ steps.vault.outputs.harbor_password }}" >> "$GITHUB_OUTPUT"
+        echo "harbor_username=${{ steps.vault.outputs.harbor_username }}" >> "$GITHUB_OUTPUT"
+        echo "registry=${{ steps.vault.outputs.registry }}" >> "$GITHUB_OUTPUT"
+        echo "discord_webhook_url=${{ steps.vault.outputs.discord_webhook_url }}" >> "$GITHUB_OUTPUT"

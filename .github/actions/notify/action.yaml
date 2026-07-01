@@ -1,0 +1,48 @@
+name: 'Notify'
+description: 'Notify to Discord'
+
+inputs:
+  discord_webhook_url:
+    required: true
+  registry:
+    required: true
+  project_name:
+    required: true
+  bucket_name:
+    required: true
+  data_tag:
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Extract Commit Info
+      id: commit-info
+      shell: bash
+      run: |
+        COMMIT_MSG=$(git log -1 --pretty=format:'%s')
+        COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an')
+        COMMIT_HASH=$(git log -1 --pretty=format:'%h')
+
+        echo "message=$COMMIT_MSG" >> $GITHUB_OUTPUT
+        echo "author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+        echo "hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+
+    - name: Send Discord Notification
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ inputs.discord_webhook_url }}
+        title: '📦 새로운 이미지 배포 알림'
+        description: |
+          **프로젝트**: ${{ inputs.project_name }}
+          **태그**: ${{ inputs.registry }}/${{ inputs.project_name }}/${{ inputs.bucket_name }}:${{ inputs.data_tag }}
+          **저장소**: ${{ github.repository }}
+          **브랜치**: `${{ github.ref_name }}`
+          **커밋**: `${{ steps.commit-info.outputs.hash }}`
+          **작성자**: ${{ steps.commit-info.outputs.author }}
+          **메시지**: ${{ steps.commit-info.outputs.message }}
+
+          [커밋 보기](${{ github.event.head_commit.url }})
+        color: 0x00ff00
+        username: GitHub Bot
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
