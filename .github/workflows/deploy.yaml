@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
+      - 'app/**'
+      - 'requirements.txt'
       - 'dockerfile'
       - '.github/**'
 
@@ -79,7 +80,7 @@ jobs:
             label=${{ needs.prepare.outputs.bucket_name }}
           build-args: |
             APP_NAME=${{ needs.prepare.outputs.app_name }}
-            ENVIRONMENT=prod
+            ENVIRONMENT=production
 
   notify-discord:
     needs: [prepare, build_image]

@@ -2,12 +2,18 @@ from contextvars import ContextVar
 from datetime import datetime, timezone
 import json
 import logging
+import os
 import sys
 from typing import Any
 from uuid import uuid4
 
 REQUEST_ID: ContextVar[str | None] = ContextVar("request_id", default=None)
 LOGGER_NAME = "scene_story_agent"
+PRODUCTION_ENVIRONMENTS = {"prod", "production"}
+
+
+def is_production() -> bool:
+    return os.getenv("ENVIRONMENT", "local").strip().lower() in PRODUCTION_ENVIRONMENTS
 
 
 class JsonFormatter(logging.Formatter):
@@ -24,6 +30,8 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             payload["error_type"] = record.exc_info[0].__name__ if record.exc_info[0] else None
             payload["message"] = str(record.exc_info[1])
+        if is_production():
+            return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str)
         return json.dumps(payload, ensure_ascii=False, indent=2, default=str)
 
 

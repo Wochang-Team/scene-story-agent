@@ -1,5 +1,7 @@
 FROM python:3.13-slim
 
+ARG ENVIRONMENT=production
+
 WORKDIR /app
 
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
@@ -14,6 +16,7 @@ RUN chown -R appuser:appgroup /app
 
 USER appuser
 
+ENV ENVIRONMENT=${ENVIRONMENT}
 ENV ENV_FILE=.env.prd
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
