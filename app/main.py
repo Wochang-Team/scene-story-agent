@@ -26,6 +26,7 @@ app.include_router(ui_router)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     log_event(
         "request.validation_failed",
+        message=f"{request.method} {request.url.path} -> 422 (validation failed)",
         method=request.method,
         path=request.url.path,
         status_code=422,
@@ -49,7 +50,10 @@ async def request_logging_middleware(request: Request, call_next):
             status_code=500,
             duration_ms=duration_ms,
             error_type=type(exc).__name__,
-            message=str(exc),
+            message=(
+                f"{request.method} {request.url.path} -> 500 "
+                f"({duration_ms:.2f} ms): {type(exc).__name__}: {exc}"
+            ),
         )
         raise
 
@@ -63,6 +67,10 @@ async def request_logging_middleware(request: Request, call_next):
         event = "request.completed"
     log_event(
         event,
+        message=(
+            f"{request.method} {request.url.path} -> {response.status_code} "
+            f"({duration_ms:.2f} ms)"
+        ),
         method=request.method,
         path=request.url.path,
         status_code=response.status_code,

@@ -415,6 +415,26 @@ def test_path_validation_error_logs_actionable_context(client, monkeypatch):
     assert validation_error["input"] == "1"
 
 
+def test_request_log_contains_readable_summary(client, monkeypatch):
+    import app.main as main_module
+
+    events = []
+
+    def capture_log_event(event, **fields):
+        events.append({"event": event, **fields})
+
+    monkeypatch.setattr(main_module, "log_event", capture_log_event)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    completed_events = [
+        event for event in events if event["event"] == "request.completed"
+    ]
+    assert len(completed_events) == 1
+    assert completed_events[0]["message"].startswith("GET / -> 200 (")
+
+
 def test_record_file_job_ai_embedding_and_delete_flow(client):
     user = "pytest-flow"
     first = create_record(client, user, "카페 라떼와 조용한 작업")
