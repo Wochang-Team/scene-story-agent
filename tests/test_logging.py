@@ -22,7 +22,9 @@ def test_json_formatter_uses_single_line_in_production(monkeypatch) -> None:
     output = JsonFormatter().format(make_record())
 
     assert "\n" not in output
-    assert json.loads(output)["event"] == "request.completed"
+    payload = json.loads(output)
+    assert payload["event"] == "request.completed"
+    assert payload["message"] == "request.completed"
 
 
 def test_json_formatter_keeps_pretty_output_locally(monkeypatch) -> None:
@@ -31,4 +33,6 @@ def test_json_formatter_keeps_pretty_output_locally(monkeypatch) -> None:
     output = JsonFormatter().format(make_record())
 
     assert "\n" in output
-    assert json.loads(output)["event"] == "request.completed"
+    payload = json.loads(output)
+    assert payload["event"] == "request.completed"
+    assert payload["message"] == "request.completed"

@@ -22,6 +22,7 @@ class JsonFormatter(logging.Formatter):
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname.lower(),
             "event": getattr(record, "event", record.getMessage()),
+            "message": record.getMessage(),
             "request_id": getattr(record, "request_id", None) or REQUEST_ID.get(),
         }
         fields = getattr(record, "fields", None)
