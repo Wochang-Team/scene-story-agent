@@ -8,7 +8,12 @@ from fastapi.exceptions import RequestValidationError
 import psycopg
 from redis import Redis
 
-from app.logging import configure_logging, log_event, set_request_id
+from app.logging import (
+    configure_logging,
+    log_event,
+    set_request_id,
+    should_log_request,
+)
 from app.routers.jobs import router as jobs_router
 from app.routers.records import router as records_router
 from app.routers.ui import router as ui_router
@@ -57,8 +62,11 @@ async def request_logging_middleware(request: Request, call_next):
         )
         raise
 
-    duration_ms = round((monotonic() - started_at) * 1000, 2)
     response.headers["X-Request-ID"] = request_id
+    if not should_log_request(request.url.path, response.status_code):
+        return response
+
+    duration_ms = round((monotonic() - started_at) * 1000, 2)
     if response.status_code >= 500:
         event = "request.failed"
     elif response.status_code >= 400:
@@ -112,17 +120,22 @@ async def health() -> dict[str, str]:
 async def readiness() -> dict[str, str | dict[str, str]]:
     settings = get_settings()
 
-    log_event(
-        "database.connection_attempt",
-        environment=settings.postgres_log_environment,
-    )
-    with psycopg.connect(
-        **settings.postgres_connection_kwargs,
-        connect_timeout=3,
-    ) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("select 1")
-            cursor.fetchone()
+    try:
+        with psycopg.connect(
+            **settings.postgres_connection_kwargs,
+            connect_timeout=3,
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("select 1")
+                cursor.fetchone()
+    except psycopg.Error as exc:
+        log_event(
+            "database.connection_failed",
+            message="PostgreSQL readiness check failed",
+            error_type=type(exc).__name__,
+            environment=settings.postgres_log_environment,
+        )
+        raise
 
     # redis_client = Redis(
     #     host=settings.redis_host,

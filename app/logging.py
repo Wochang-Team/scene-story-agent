@@ -10,10 +10,15 @@ from uuid import uuid4
 REQUEST_ID: ContextVar[str | None] = ContextVar("request_id", default=None)
 LOGGER_NAME = "scene_story_agent"
 PRODUCTION_ENVIRONMENTS = {"prod", "production"}
+HEALTH_CHECK_PATHS = {"/health", "/health/live", "/health/ready"}
 
 
 def is_production() -> bool:
     return os.getenv("ENVIRONMENT", "local").strip().lower() in PRODUCTION_ENVIRONMENTS
+
+
+def should_log_request(path: str, status_code: int) -> bool:
+    return path not in HEALTH_CHECK_PATHS or status_code >= 400
 
 
 class JsonFormatter(logging.Formatter):
