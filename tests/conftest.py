@@ -46,7 +46,10 @@ def cleanup_test_state(storage_root: Path | None = None) -> None:
     settings = get_settings()
     target_storage_root = storage_root or Path(settings.local_storage_root)
     test_user_pattern = f"{TEST_USER_PREFIX}%"
-    with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+    with psycopg.connect(
+        **settings.postgres_connection_kwargs,
+        row_factory=dict_row,
+    ) as connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 """

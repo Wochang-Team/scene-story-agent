@@ -112,19 +112,26 @@ async def health() -> dict[str, str]:
 async def readiness() -> dict[str, str | dict[str, str]]:
     settings = get_settings()
 
-    with psycopg.connect(settings.postgres_dsn, connect_timeout=3) as conn:
+    log_event(
+        "database.connection_attempt",
+        environment=settings.postgres_log_environment,
+    )
+    with psycopg.connect(
+        **settings.postgres_connection_kwargs,
+        connect_timeout=3,
+    ) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select 1")
             cursor.fetchone()
 
-    redis_client = Redis(
-        host=settings.redis_host,
-        port=settings.redis_port,
-        socket_connect_timeout=3,
-        socket_timeout=3,
-        decode_responses=True,
-    )
-    redis_client.ping()
+    # redis_client = Redis(
+    #     host=settings.redis_host,
+    #     port=settings.redis_port,
+    #     socket_connect_timeout=3,
+    #     socket_timeout=3,
+    #     decode_responses=True,
+    # )
+    # redis_client.ping()
 
     return {
         "status": "ok",

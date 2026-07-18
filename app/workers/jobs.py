@@ -145,7 +145,10 @@ def run_forever(
         decode_responses=True,
     )
     try:
-        with psycopg.connect(resolved_settings.postgres_dsn, row_factory=dict_row) as connection:
+        with psycopg.connect(
+            **resolved_settings.postgres_connection_kwargs,
+            row_factory=dict_row,
+        ) as connection:
             log_event(
                 "worker.started",
                 job_types=WORKER_JOB_TYPES,

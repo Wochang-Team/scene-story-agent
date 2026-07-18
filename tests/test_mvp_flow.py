@@ -77,14 +77,20 @@ def run_worker_once(settings, record_id: str | None = None) -> bool:
         decode_responses=True,
     )
     try:
-        with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+        with psycopg.connect(
+            **settings.postgres_connection_kwargs,
+            row_factory=dict_row,
+        ) as connection:
             return process_next_job(connection, redis_client, settings, record_id=record_id)
     finally:
         redis_client.close()
 
 
 def make_job_available(settings, job_id: str) -> None:
-    with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+    with psycopg.connect(
+        **settings.postgres_connection_kwargs,
+        row_factory=dict_row,
+    ) as connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
@@ -98,7 +104,10 @@ def make_job_available(settings, job_id: str) -> None:
 
 
 def job_retry_delay_seconds(settings, job_id: str) -> float:
-    with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+    with psycopg.connect(
+        **settings.postgres_connection_kwargs,
+        row_factory=dict_row,
+    ) as connection:
         with connection.cursor() as cursor:
             cursor.execute(
                 """

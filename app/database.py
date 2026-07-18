@@ -12,5 +12,8 @@ from app.settings import Settings, get_settings
 def get_connection(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> Iterator[Connection[dict[str, Any]]]:
-    with psycopg.connect(settings.postgres_dsn, row_factory=dict_row) as connection:
+    with psycopg.connect(
+        **settings.postgres_connection_kwargs,
+        row_factory=dict_row,
+    ) as connection:
         yield connection

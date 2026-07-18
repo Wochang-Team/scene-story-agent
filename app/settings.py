@@ -36,11 +36,26 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     @property
-    def postgres_dsn(self) -> str:
-        return (
-            f"postgresql://{self.postgres_user}:{self.postgres_password}"
-            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
-        )
+    def postgres_connection_kwargs(self) -> dict[str, str | int]:
+        return {
+            "dbname": self.postgres_db,
+            "user": self.postgres_user,
+            "password": self.postgres_password,
+            "host": self.postgres_host,
+            "port": self.postgres_port,
+        }
+
+    @property
+    def postgres_log_environment(self) -> dict[str, str | int]:
+        return {
+            "POSTGRES_DB": self.postgres_db,
+            "POSTGRES_USER": self.postgres_user,
+            "POSTGRES_PASSWORD": (
+                "[configured]" if self.postgres_password else "[not configured]"
+            ),
+            "POSTGRES_HOST": self.postgres_host,
+            "POSTGRES_PORT": self.postgres_port,
+        }
 
 
 @lru_cache
